@@ -1,0 +1,11 @@
+{
+    "esbonio.server.enabled": true,
+    "restructuredtext.confPath": "",
+    "python.formatting.provider": "black",
+    "cSpell.words": [
+        "fget",
+        "ledm"
+    ],
+    "python.linting.flake8Enabled": true,
+    "editor.formatOnSave": true
+}
