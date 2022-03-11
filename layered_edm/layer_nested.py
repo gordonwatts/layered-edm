@@ -67,10 +67,10 @@ class BaseTemplateEDMLayer(BaseEDMLayer):
         # Now, call remapping function. To do this we need the current
         # expression we are working on.
         expr = self._get_expression()
-        new_expr = mod_call(expr)
+        new_expr = mod_call(expr.ds)
 
         # Now, wrap it depending on the class that should be used as a template
-        return LEDMTerminal(new_expr)
+        return expr.wrap(new_expr)
 
     #     def clone(self, new_obj):
     #         raise RuntimeError()

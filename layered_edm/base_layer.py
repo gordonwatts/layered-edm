@@ -16,7 +16,7 @@ class BaseEDMLayer:
         return self._ds
 
     def _get_expression(self):
-        return self._ds
+        return self
 
 
 def remap(l_func: Optional[Callable] = None) -> Callable:

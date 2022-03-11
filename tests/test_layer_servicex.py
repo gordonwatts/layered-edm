@@ -3,6 +3,7 @@ import pytest
 from func_adl import ObjectStream, EventDataset
 import ast
 import layered_edm as ledm
+from layered_edm.layer_servicex import LEDMServiceX
 
 
 @pytest.fixture
@@ -11,7 +12,20 @@ def simple_ds() -> ObjectStream:
 
     class my_evt_ds(EventDataset):
         async def execute_result_async(
-            self, a: ast.AST, title: Optional[str] = None
+            self, a: ast.AST, _title: Optional[str] = None
+        ) -> Any:
+            return a
+
+    return my_evt_ds()
+
+
+@pytest.fixture
+def simple_ds2() -> ObjectStream:
+    "Returns the ast when value() is called"
+
+    class my_evt_ds(EventDataset):
+        async def execute_result_async(
+            self, a: ast.AST, _title: Optional[str] = None
         ) -> Any:
             return a
 
@@ -28,6 +42,18 @@ def test_sx_empty_layer(simple_ds):
         data.met
 
     assert "met" in str(e)
+
+
+def test_sx_wrap(simple_ds, simple_ds2):
+    @ledm.edm_sx
+    class my_evt:
+        ...
+
+    data = my_evt(simple_ds).ds
+    data2 = data.wrap(simple_ds2)
+
+    assert isinstance(data2, LEDMServiceX)
+    assert data2.ds is simple_ds2
 
 
 def test_sx_in_layer(simple_ds):
@@ -49,6 +75,40 @@ def test_sx_in_layer(simple_ds):
         ast.unparse(r.value())
         == "Select(EventDataset(), lambda e: e.MissingET().First())"
     )
+
+
+def test_as_sx(simple_ds):
+    @ledm.edm_sx
+    class my_evt:
+        @property
+        @ledm.remap(lambda ds: ds.Select(lambda e: e.MissingET().First()))
+        def met(self):
+            ...
+
+    @ledm.edm_sx
+    class empty_evt:
+        ...
+
+    data = my_evt(empty_evt(simple_ds))
+    r = data.met.as_sx()
+    assert isinstance(r, ObjectStream)
+
+
+def test_as_awk(simple_ds):
+    @ledm.edm_sx
+    class my_evt:
+        @property
+        @ledm.remap(lambda ds: ds.Select(lambda e: e.MissingET().First()))
+        def met(self):
+            ...
+
+    @ledm.edm_sx
+    class empty_evt:
+        ...
+
+    data = my_evt(empty_evt(simple_ds))
+    r = data.met.as_awkward()
+    assert isinstance(r, ast.AST)
 
 
 # def test_2layer(simple_ds):

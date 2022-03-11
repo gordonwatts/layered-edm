@@ -10,6 +10,9 @@ class simple_array_layer(BaseEDMLayer):
     def __init__(self, arr):
         super().__init__(arr)
 
+    def wrap(self, arr):
+        return simple_array_layer(arr)
+
 
 @dataclass
 class single_item_test_data:

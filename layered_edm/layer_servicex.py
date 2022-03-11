@@ -9,6 +9,15 @@ class LEDMServiceX(BaseEDMLayer):
     def __init__(self, stream: ObjectStream):
         super().__init__(stream)
 
+    def as_sx(self) -> ObjectStream:
+        return self.ds
+
+    def as_awkward(self):
+        return self.ds.AsAwkwardArray().value()
+
+    def wrap(self, s: ObjectStream):
+        return LEDMServiceX(s)
+
 
 # class LEDMServiceX(BaseEDMLayer):
 #     def __init__(self, ds, edm_template: Callable):
