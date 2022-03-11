@@ -4,7 +4,10 @@
     "python.formatting.provider": "black",
     "cSpell.words": [
         "fget",
-        "ledm"
+        "ledm",
+        "presel",
+        "preselection",
+        "unparse"
     ],
     "python.linting.flake8Enabled": true,
     "editor.formatOnSave": true

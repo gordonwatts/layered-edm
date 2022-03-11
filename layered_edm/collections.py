@@ -1,8 +1,8 @@
-from typing import Iterable, TypeVar
+# from typing import Iterable, TypeVar
 
 
-T = TypeVar("T")
+# T = TypeVar("T")
 
 
-class EDMIterable(Iterable[T]):
-    ...
+# class EDMIterable(Iterable[T]):
+#     ...

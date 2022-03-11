@@ -1,25 +1,33 @@
-import inspect
-from typing import Callable, Optional, Tuple, get_type_hints
+from __future__ import annotations
+from typing import Any, Callable, Optional
 
 
 class BaseEDMLayer:
-    def __init__(self, template: object):
-        self._template = template
+    "Base layer for the edm"
 
-    def _find_template_attr(self, name: str) -> Optional[Callable]:
-        # Get the remapping function
-        t = getattr(self._template, name, None)
-        if t is None:
-            return None
-        l_callback = getattr(t.fget, "__remap_func", None)
+    def __init__(self, ds, format: str):
+        self._ds = ds
+        self._format = format
 
-        # See if we are a sub-object or not.
-        # type_info = get_type_hints(t.fget)
-        # Look at return annotation.
-        return l_callback
+    def __getattr__(self, __name: str) -> Any:
+        return getattr(self._ds, __name)
+
+    def _get_attribute_unresolved(self, name: str) -> BaseEDMLayer:
+        return self.clone(getattr(self._ds, name))
+
+    @property
+    def format(self):
+        return self._format
+
+    @property
+    def ds(self):
+        return self._ds
+
+    def clone(self, new_obj):
+        return BaseEDMLayer(new_obj, self.format)
 
 
-def remap(l_func: Callable) -> Callable:
+def remap(l_func: Optional[Callable] = None) -> Callable:
     """Wrap a property to redirect how the item is actually accessed
 
     ```

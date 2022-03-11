@@ -1,7 +1,6 @@
 from typing import Any, Optional
 import pytest
 from func_adl import ObjectStream, EventDataset
-import layered_edm as ledm
 import ast
 
 
@@ -16,15 +15,103 @@ def simple_ds() -> ObjectStream:
     return my_evt_ds()
 
 
-def test_ds_ds(simple_ds):
-    @ledm.edm_sx
-    class my_evt:
-        @property
-        @ledm.remap(lambda ds: ds.Select(lambda e: e.MissingET().First()))
-        def met(self):
-            ...
+# def test_ds_ds(simple_ds):
+#     class my_evt:
+#         @property
+#         @ledm.remap(lambda ds: ds.Select(lambda e: e.MissingET().First()))
+#         def met(self):
+#             ...
 
-    data = my_evt(simple_ds)
-    r = data.met
+#     data = BaseTemplateEDMLayer(LEDMServiceX(simple_ds), my_evt, "sx")
+#     r = data.met
 
-    assert "MissingET" in ast.dump(r)
+#     assert ast.unparse(r) == "Select(EventDataset(), lambda e: e.MissingET().First())"
+
+
+# def test_ds_nested_single_column(simple_ds):
+#     class jet:
+#         @property
+#         @ledm.remap(lambda j: j.pt())
+#         def pt(self) -> float:
+#             ...
+
+#     class my_evt:
+#         @property
+#         @ledm.remap(lambda ds: ds.Select(lambda e: e.Jets()))
+#         def jets(self) -> Iterable[jet]:
+#             ...
+
+#     data = BaseTemplateEDMLayer(LEDMServiceX(simple_ds), my_evt, "sx")
+#     r = data.jet.pt
+
+#     assert (
+#         ast.unparse(r)
+#         == "Select(EventDataset(), lambda e: e.Jets()).Select(lambda jets: jets.Select(lambda j: j.pt()))"
+#     )
+
+
+# def test_ds_nested_single_column_no_depth(simple_ds):
+#     class jet:
+#         @property
+#         @ledm.remap(lambda ds: ds.Select(lambda e: [j.pt() for j in e.Jets()]))
+#         def pt(self) -> float:
+#             ...
+
+#     class my_evt:
+#         @property
+#         @ledm.remap()
+#         def jets(self) -> Iterable[jet]:
+#             ...
+
+#     data = BaseTemplateEDMLayer(LEDMServiceX(simple_ds), my_evt, "sx")
+#     r = data.jet.pt
+
+#     assert (
+#         ast.unparse(r)
+#         == "Select(EventDataset(), lambda e: e.Jets()).Select(lambda jets: jets.Select(lambda j: j.pt()))"
+#     )
+
+
+# def test_ds_nested_all_columns(simple_ds):
+#     class jet:
+#         @property
+#         @ledm.remap(lambda j: j.pt())
+#         def pt(self) -> float:
+#             ...
+
+#         @property
+#         @ledm.remap(lambda j: j.pz())
+#         def pz(self) -> float:
+#             ...
+
+#     class my_evt:
+#         @property
+#         @ledm.remap(lambda ds: ds.Select(lambda e: e.Jets()))
+#         def jets(self) -> Iterable[jet]:
+#             ...
+
+#     data = BaseTemplateEDMLayer(LEDMServiceX(simple_ds), my_evt, "sx")
+#     r = data.jet
+
+#     assert (
+#         ast.unparse(r) == "Select(EventDataset(), lambda e: e.Jets())"
+#         ".Select(lambda jets: {'pt': jets.Select(lambda j: j.pt()), "
+#         "'pz': jets.Select(lambda j: j.pz()))"
+#     )
+
+
+# def test_sx_met_as_sx(simple_ds):
+#     class my_evt:
+#         @property
+#         @ledm.remap(lambda ds: ds.Select(lambda e: e.MissingET().First()))
+#         def met(self):
+#             ...
+
+#     data = BaseTemplateEDMLayer(LEDMServiceX(simple_ds), my_evt, "sx")
+#     r = data.met.as_sx("sx")
+
+#     assert isinstance(r, ObjectStream)
+#     assert (
+#         ast.unparse(r.value())
+#         == "Select(EventDataset(), lambda e: e.MissingET().First())"
+#     )
