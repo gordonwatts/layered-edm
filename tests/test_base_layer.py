@@ -2,8 +2,6 @@ from __future__ import annotations
 import layered_edm as ledm
 from layered_edm.base_layer import BaseEDMLayer
 
-# from layered_edm.layer_nested import BaseTemplateEDMLayer
-
 
 def test_base_getattr():
     class c:
@@ -11,20 +9,8 @@ def test_base_getattr():
         def px(self):
             return 1
 
-    bl = BaseEDMLayer(c(), "stuff")
-    assert bl.px == 1
-
-
-def test_base_getattr_unresolved():
-    class c:
-        @property
-        def px(self):
-            return 1
-
-    bl = BaseEDMLayer(c(), "stuff")
-    r = bl._get_attribute_unresolved("px")
-    assert r.format == "stuff"
-    assert r.ds == 1
+    bl = BaseEDMLayer(c())
+    assert bl.px.ds == 1
 
 
 # def test_base_template_same(mocker):

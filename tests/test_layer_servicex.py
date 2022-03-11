@@ -2,10 +2,13 @@ from typing import Any, Optional
 import pytest
 from func_adl import ObjectStream, EventDataset
 import ast
+import layered_edm as ledm
 
 
 @pytest.fixture
 def simple_ds() -> ObjectStream:
+    "Returns the ast when value() is called"
+
     class my_evt_ds(EventDataset):
         async def execute_result_async(
             self, a: ast.AST, title: Optional[str] = None
@@ -15,14 +18,48 @@ def simple_ds() -> ObjectStream:
     return my_evt_ds()
 
 
-# def test_ds_ds(simple_ds):
+def test_sx_empty_layer(simple_ds):
+    @ledm.edm_sx
+    class my_evt:
+        ...
+
+    data = my_evt(simple_ds)
+    with pytest.raises(AttributeError) as e:
+        data.met
+
+    assert "met" in str(e)
+
+
+def test_sx_in_layer(simple_ds):
+    @ledm.edm_sx
+    class my_evt:
+        @property
+        @ledm.remap(lambda ds: ds.Select(lambda e: e.MissingET().First()))
+        def met(self):
+            ...
+
+    @ledm.edm_sx
+    class empty_evt:
+        ...
+
+    data = my_evt(empty_evt(simple_ds))
+    r = data.met.ds
+
+    assert (
+        ast.unparse(r.value())
+        == "Select(EventDataset(), lambda e: e.MissingET().First())"
+    )
+
+
+# def test_2layer(simple_ds):
+#     @ledm.sx_layer
 #     class my_evt:
 #         @property
 #         @ledm.remap(lambda ds: ds.Select(lambda e: e.MissingET().First()))
 #         def met(self):
 #             ...
 
-#     data = BaseTemplateEDMLayer(LEDMServiceX(simple_ds), my_evt, "sx")
+#     data = my_evt(simple_ds)
 #     r = data.met
 
 #     assert ast.unparse(r) == "Select(EventDataset(), lambda e: e.MissingET().First())"

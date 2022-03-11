@@ -5,26 +5,18 @@ from typing import Any, Callable, Optional
 class BaseEDMLayer:
     "Base layer for the edm"
 
-    def __init__(self, ds, format: str):
+    def __init__(self, ds):
         self._ds = ds
-        self._format = format
 
     def __getattr__(self, __name: str) -> Any:
-        return getattr(self._ds, __name)
-
-    def _get_attribute_unresolved(self, name: str) -> BaseEDMLayer:
-        return self.clone(getattr(self._ds, name))
-
-    @property
-    def format(self):
-        return self._format
+        return BaseEDMLayer(getattr(self._ds, __name))
 
     @property
     def ds(self):
         return self._ds
 
-    def clone(self, new_obj):
-        return BaseEDMLayer(new_obj, self.format)
+    def _get_expression(self):
+        return self._ds
 
 
 def remap(l_func: Optional[Callable] = None) -> Callable:
