@@ -71,17 +71,6 @@ class BaseTemplateEDMLayer(BaseEDMLayer):
         # Now, wrap it depending on the class that should be used as a template
         return expr.wrap(new_expr)
 
-    #     def clone(self, new_obj):
-    #         raise RuntimeError()
-
-    #     def _get_attribute_unresolved(self, name: str) -> BaseEDMLayer:
-    #         mod_call = self._find_template_attr(name)
-    #         if mod_call is not None:
-    #             temp = make_holder(mod_call(self.ds.ds), self.ds.format)
-    #             local_value = convert_format(temp, self.format)
-    #             return make_holder(local_value, self.format)
-    #         raise NotImplementedError()
-
     def _find_template_attr(self, name: str) -> Optional[Callable]:
         """Find some sort of remapping function for a given attribute from the
         template.
@@ -100,27 +89,6 @@ class BaseTemplateEDMLayer(BaseEDMLayer):
             return None
         l_callback = getattr(t.fget, "__remap_func", None)
         return l_callback
-
-
-#     # def __getattr__(self, __name: str) -> Any:
-#     #     f = self._find_template_attr(__name)
-#     #     if f is not None:
-#     #         return f(self._ds)
-#     #     return super().__getattr__(__name)
-
-
-# class LEDMLayerNested(BaseEDMLayer):
-#     def __init__(self, nested_layer: BaseEDMLayer, template: object, format: str):
-#         super().__init__(template, format)
-#         self._base_layer = nested_layer
-
-#     def __getattr__(self, __name: str) -> ak.Array:
-#         f = self._find_template_attr(__name)
-#         if f is not None:
-#             return f(self._base_layer)
-#         else:
-#             # Should climb the inheritance tree
-#             return getattr(self._base_layer, __name)
 
 
 # def edm_nested(class_to_wrap: Callable, format: str) -> Callable:
