@@ -26,9 +26,24 @@
 #     raise NotImplementedError(f"Format {format} not implemented")
 
 
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Tuple, Type, get_type_hints
 
 from layered_edm.base_layer import BaseEDMLayer
+
+
+def _is_terminal(t: Type) -> bool:
+    """If the type is a simple terminal (like a float) and not another
+    complex object we know about - like a class - then return false.
+
+    Args:
+        t (Type): The type to check
+
+    Returns:
+        bool: True if it is a terminal type, False otherwise
+    """
+    if t in [float, int, str]:
+        return True
+    return False
 
 
 class BaseTemplateEDMLayer(BaseEDMLayer):
@@ -59,19 +74,26 @@ class BaseTemplateEDMLayer(BaseEDMLayer):
         Returns:
             Any: Result of fetching the attribute
         """
-        mod_call = self._find_template_attr(name)
+        mod_call, rtn_type = self._find_template_attr(name)
         if mod_call is None:
             return getattr(self.ds, name)
 
         # Now, call remapping function. To do this we need the current
-        # expression we are working on.
+        # expression we are working on, and then wrap it back up.
         expr = self._get_expression()
         new_expr = mod_call(expr.ds)
+        new_expr_wrapped = expr.wrap(new_expr)
 
-        # Now, wrap it depending on the class that should be used as a template
-        return expr.wrap(new_expr)
+        # If the return type is not a simple object, then we need to
+        # create a new template so we can follow it!
+        if rtn_type is not None and not _is_terminal(rtn_type):
+            return BaseTemplateEDMLayer(new_expr_wrapped, rtn_type)
 
-    def _find_template_attr(self, name: str) -> Optional[Callable]:
+        return new_expr_wrapped
+
+    def _find_template_attr(
+        self, name: str
+    ) -> Tuple[Optional[Callable], Optional[Type]]:
         """Find some sort of remapping function for a given attribute from the
         template.
 
@@ -86,9 +108,14 @@ class BaseTemplateEDMLayer(BaseEDMLayer):
         """
         t = getattr(self._template, name, None)
         if t is None:
-            return None
+            return None, None
         l_callback = getattr(t.fget, "__remap_func", None)
-        return l_callback
+
+        # Get type hints back in case we are going for a second type of object for return.
+        hints = get_type_hints(t.fget)
+        rtn_type = hints.get("return", None)
+
+        return l_callback, rtn_type
 
 
 # def edm_nested(class_to_wrap: Callable, format: str) -> Callable:

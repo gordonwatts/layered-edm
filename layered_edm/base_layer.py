@@ -19,7 +19,7 @@ class BaseEDMLayer:
         return self
 
 
-def remap(l_func: Optional[Callable] = None) -> Callable:
+def remap(l_func: Optional[Callable] = lambda a: a) -> Callable:
     """Wrap a property to redirect how the item is actually accessed
 
     ```
