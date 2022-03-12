@@ -29,7 +29,6 @@
 from typing import Any, Callable, Optional
 
 from layered_edm.base_layer import BaseEDMLayer
-from layered_edm.layer_terminal import LEDMTerminal
 
 
 class BaseTemplateEDMLayer(BaseEDMLayer):

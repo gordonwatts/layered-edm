@@ -8,9 +8,9 @@ Layered Event Data Model and services.
 * [x] Get simple ServiceX working
 * [x] Get simple nested dataset working
 * [ ] Add sub-objects (like a 4 vector object)
-* [ ] Add behaviors for objects in the awk version (like jets) and the nested version
 * [ ] Add filter at dataset level (e.g. events)
 * [ ] Add filter at object level (e.g. jets)
+* [ ] Add behaviors for objects in the awk version (like jets) and the nested version
 * [ ] Typing
 * [ ] Caching
 
@@ -36,6 +36,11 @@ class evt:
     @ledm.remap(lambda e: e.Jets())
     def jets(self) -> Iterable[jet]:
         ...
+    
+    @property
+    @ledm.remap(lambda e: e.MissingET().First())
+    def met(self) -> double:
+        ...
 ```
 
 With this one can write:
@@ -53,7 +58,7 @@ One can also wrap and filter (and add new fields)
 
 ```python
 @ledm.sx_layer
-@ledm.filter(lambda e: [j for j in e.jets() if j.pt > 3000].Count() == 2])
+@ledm.filter(lambda e: [j for j in e.jets if j.pt > 3000].Count() == 2])
 class preselection:
     @property
     @ledm.remap(lambda e: [j for e.jets if j.pt > 30000)
@@ -64,7 +69,7 @@ class preselection:
 Then, from above:
 
 ```python
-ds = ServiceXDataset('mc16.zee)
+ds = ServiceXDataset('mc16.zee')
 
 events = evt(ds)
 presel = preselection(events)
