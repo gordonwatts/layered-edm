@@ -129,9 +129,13 @@ def test_sub_sx(simple_ds):
     data = my_evt(simple_ds)
     r = data.subs.p.ds
 
-    # I hate black sometimes - makes formatting these next lines a bit of a mess.
-    expected = simple_ds.Select(lambda e: e.subs())
-    expected = expected.Select(lambda items: items.Select(lambda so: so.prop()))
+    # fmt: off
+    expected = (
+        simple_ds
+        .Select(lambda e: e.subs())
+        .Select(lambda items: items.Select(lambda so: so.prop()))
+    )
+    # fmt: on
 
     assert ast.unparse(r.value()) == ast.unparse(expected.value())
 
