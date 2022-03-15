@@ -1,5 +1,4 @@
 from __future__ import annotations
-from ast import Call
 from dataclasses import dataclass
 from typing import Callable, Iterable, List
 import pytest
