@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, Iterable, Optional
 import pytest
 from func_adl import ObjectStream, EventDataset
 import ast
@@ -60,7 +60,7 @@ def test_sx_in_layer(simple_ds):
     @ledm.edm_sx
     class my_evt:
         @property
-        @ledm.remap(lambda ds: ds.Select(lambda e: e.MissingET().First()))
+        @ledm.remap(lambda e: e.MissingET().First())
         def met(self):
             ...
 
@@ -109,6 +109,31 @@ def test_as_awk(simple_ds):
     data = my_evt(empty_evt(simple_ds))
     r = data.met.as_awkward()
     assert isinstance(r, ast.AST)
+
+
+class _test_sub_objs:
+    @property
+    @ledm.remap(lambda so: so.prop())
+    def p(self):
+        ...
+
+
+def test_sub_sx(simple_ds):
+    @ledm.edm_sx
+    class my_evt:
+        @property
+        @ledm.remap(lambda e: e.subs())
+        def subs(self) -> Iterable[_test_sub_objs]:
+            ...
+
+    data = my_evt(simple_ds)
+    r = data.subs.p.ds
+
+    # I hate black sometimes - makes formatting these next lines a bit of a mess.
+    expected = simple_ds.Select(lambda e: e.subs())
+    expected = expected.Select(lambda items: items.Select(lambda so: so.prop()))
+
+    assert ast.unparse(r.value()) == ast.unparse(expected.value())
 
 
 # def test_2layer(simple_ds):

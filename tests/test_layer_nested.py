@@ -1,6 +1,7 @@
 from __future__ import annotations
+from ast import Call
 from dataclasses import dataclass
-from typing import List
+from typing import Callable, Iterable, List
 import pytest
 from layered_edm.base_layer import BaseEDMLayer
 import layered_edm as ledm
@@ -13,6 +14,14 @@ class simple_array_layer(BaseEDMLayer):
 
     def wrap(self, arr):
         return simple_array_layer(arr)
+
+    def iterable_map(self, callback: Callable) -> BaseEDMLayer:
+        "Simulate call on make loop"
+        return simple_array_layer(self.ds.make_loop(callback))
+
+    def single_item_map(self, callback: Callable) -> BaseEDMLayer:
+        "Call on a single item"
+        return callback(self.ds)
 
 
 @dataclass
@@ -98,6 +107,26 @@ def test_sub_object_remap(mock_layer):
     assert isinstance(result, simple_array_layer)
     mock_layer.ds.sub_objs.assert_called_once()
     mock_layer.ds.sub_objs.return_value.my_prop.assert_called_once()
+
+
+def test_sub_object_remap_iterable(mock_layer, mocker):
+    "A sub object with a single item"
+
+    class main_obj:
+        @property
+        @ledm.remap()
+        def subs(self) -> Iterable[_test_sub_obj_remap]:
+            ...
+
+    d = BaseTemplateEDMLayer(mock_layer, main_obj)
+    result = d.subs.my_prop
+
+    assert isinstance(result, simple_array_layer)
+    mock_layer.ds.make_loop.assert_called_once()
+
+    r = mocker.MagicMock()
+    mock_layer.ds.make_loop.call_args_list[0][0][0](r)
+    r.my_prop.assert_called_once()
 
 
 # # def test_defined_nested():

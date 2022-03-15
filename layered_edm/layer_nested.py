@@ -26,9 +26,10 @@
 #     raise NotImplementedError(f"Format {format} not implemented")
 
 
-from typing import Any, Callable, Optional, Tuple, Type, get_type_hints
+from typing import Any, Callable, Optional, Tuple, Type, get_args, get_type_hints
 
 from layered_edm.base_layer import BaseEDMLayer
+from layered_edm.util_types import is_iterable
 
 
 def _is_terminal(t: Type) -> bool:
@@ -81,15 +82,32 @@ class BaseTemplateEDMLayer(BaseEDMLayer):
         # Now, call remapping function. To do this we need the current
         # expression we are working on, and then wrap it back up.
         expr = self._get_expression()
-        new_expr = mod_call(expr.ds)
+        new_expr = self._make_expr_call(expr.ds, mod_call)
         new_expr_wrapped = expr.wrap(new_expr)
 
         # If the return type is not a simple object, then we need to
         # create a new template so we can follow it!
         if rtn_type is not None and not _is_terminal(rtn_type):
-            return BaseTemplateEDMLayer(new_expr_wrapped, rtn_type)
+            if is_iterable(rtn_type):
+                args = get_args(rtn_type)
+                return IterableTemplateEDMLayer(new_expr_wrapped, args[0])
+            else:
+                return BaseTemplateEDMLayer(new_expr_wrapped, rtn_type)
 
         return new_expr_wrapped
+
+    def _make_expr_call(self, expr: BaseEDMLayer, callback: Callable) -> BaseEDMLayer:
+        """Make a call to a remapping function.
+
+        Args:
+            expr (BaseEDMLayer): The expression to call the remapping function on
+            callback (Callable): The remapping function
+
+        Returns:
+            BaseEDMLayer: The result of the remapping function
+        """
+        expr = self._get_expression()
+        return expr.single_item_map(callback)
 
     def _find_template_attr(
         self, name: str
@@ -116,6 +134,18 @@ class BaseTemplateEDMLayer(BaseEDMLayer):
         rtn_type = hints.get("return", None)
 
         return l_callback, rtn_type
+
+
+class IterableTemplateEDMLayer(BaseTemplateEDMLayer):
+    "Wrap a template that deals with a collection (list, etc.) of a particular data type"
+    ...
+
+    def __init__(self, wrapped: BaseEDMLayer, template: object):
+        super().__init__(wrapped, template)
+
+    def _make_expr_call(self, expr: BaseEDMLayer, callback: Callable) -> BaseEDMLayer:
+        expr = self._get_expression()
+        return expr.iterable_map(callback)
 
 
 # def edm_nested(class_to_wrap: Callable, format: str) -> Callable:

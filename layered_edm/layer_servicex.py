@@ -1,8 +1,14 @@
+import ast
 from typing import Callable, Union
+
 from func_adl import ObjectStream
+from func_adl.util_ast import parse_as_ast
 
 from layered_edm.layer_nested import BaseTemplateEDMLayer
+
 from .base_layer import BaseEDMLayer
+
+# TODO: the parse_as_ast should that be exported or put in a separate package?
 
 
 class LEDMServiceX(BaseEDMLayer):
@@ -18,18 +24,20 @@ class LEDMServiceX(BaseEDMLayer):
     def wrap(self, s: ObjectStream):
         return LEDMServiceX(s)
 
+    def iterable_map(self, callback: Callable) -> BaseEDMLayer:
+        "Simulate call on make loop"
+        function_ast = parse_as_ast(callback, "remap")
+        my_func = ast.parse("lambda items: items.Select(function_ast)").body[0].value  # type: ignore
+        my_func.body.args[0] = function_ast
+        return self.ds.Select(my_func)
 
-# class LEDMServiceX(BaseEDMLayer):
-#     def __init__(self, ds, edm_template: Callable):
-#         super().__init__(edm_template)
-#         self.ds = ds
+    def single_item_map(self, callback: Callable) -> ObjectStream:
+        "Call on a single item"
 
-#     def __getattr__(self, __name: str) -> ak.Array:
-#         f = self._find_template_attr(__name)
-#         if f is not None:
-#             return f(self.ds).value()
-#         else:
-#             return getattr(self._array, __name)
+        # We can't pick it out, necessarily, so help the ast parser find it.
+        function_ast = parse_as_ast(callback, "remap")
+
+        return self.ds.Select(function_ast)
 
 
 def edm_sx(class_to_wrap: Callable) -> Callable:
