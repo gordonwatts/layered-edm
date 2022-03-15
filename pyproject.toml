@@ -8,7 +8,7 @@ authors = ["Gordon Watts <gwatts@uw.edu>"]
 python = "^3.9,<3.11"
 uproot = "^4.2.0"
 awkward = "^1.8.0"
-func-adl = "^2.3.1"
+func-adl = ">=3.0b9"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
