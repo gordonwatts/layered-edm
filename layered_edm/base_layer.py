@@ -1,15 +1,25 @@
 from __future__ import annotations
+from abc import abstractmethod, ABC
 from typing import Any, Callable, Optional
 
 
-class BaseEDMLayer:
+class BaseEDMLayer(ABC):
     "Base layer for the edm"
 
     def __init__(self, ds):
         self._ds = ds
 
     def __getattr__(self, __name: str) -> Any:
-        return BaseEDMLayer(getattr(self._ds, __name))
+        """Playing at heuristics here and hoping this will
+        return the right thing.
+
+        Args:
+            __name (str): _description_
+
+        Returns:
+            Any: _description_
+        """
+        return self.wrap(getattr(self._ds, __name))
 
     @property
     def ds(self):
@@ -17,6 +27,31 @@ class BaseEDMLayer:
 
     def _get_expression(self):
         return self
+
+    @abstractmethod
+    def single_item_map(self, callback: Callable) -> Any:
+        """Maps a single item by applying a transform on the current expression
+        to convert to somethign new (e.g. apply a.x or like a Select).
+
+        Args:
+            callback (Callable): The lambda that applies the transform
+
+        Returns:
+            Any: Returns the object we are looking at
+        """
+        ...
+
+    @abstractmethod
+    def wrap(self, s: Any) -> BaseEDMLayer:
+        """Wrap a new expression.
+
+        Args:
+            s (Any): The new expression to wrap
+
+        Returns:
+            BaseEDMLayer: The new expression
+        """
+        ...
 
 
 def remap(l_func: Optional[Callable] = lambda a: a) -> Callable:

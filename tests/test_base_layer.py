@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Any, Callable
 import layered_edm as ledm
 from layered_edm.base_layer import BaseEDMLayer
 
@@ -9,7 +10,15 @@ def test_base_getattr():
         def px(self):
             return 1
 
-    bl = BaseEDMLayer(c())
+    # Base layer doesn't exist in the abstract, so we have to create a concrete version of it.
+    class c_layer(BaseEDMLayer):
+        def wrap(self, s: Any) -> BaseEDMLayer:
+            return c_layer(s)
+
+        def single_item_map(self, callback: Callable) -> Any:
+            raise NotImplementedError()
+
+    bl = c_layer(c())
     assert bl.px.ds == 1
 
 

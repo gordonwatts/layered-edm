@@ -8,6 +8,7 @@
         "presel",
         "preselection",
         "pytest",
+        "tolist",
         "unparse"
     ],
     "python.linting.flake8Enabled": true,

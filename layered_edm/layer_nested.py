@@ -135,6 +135,12 @@ class BaseTemplateEDMLayer(BaseEDMLayer):
 
         return l_callback, rtn_type
 
+    def wrap(self, s: Any) -> BaseEDMLayer:
+        raise RuntimeError("Should never need to wrap a template class")
+
+    def single_item_map(self, callback: Callable) -> Any:
+        raise RuntimeError("Should not be mapping a single item in a template")
+
 
 class IterableTemplateEDMLayer(BaseTemplateEDMLayer):
     "Wrap a template that deals with a collection (list, etc.) of a particular data type"
