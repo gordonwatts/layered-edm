@@ -27,7 +27,7 @@ jobs:
       - name: Lint with black
         run: |
           poetry run black --check layered_edm
-          poetry run black --check test
+          poetry run black --check tests
 
   test:
     runs-on: ${{ matrix.os }}
