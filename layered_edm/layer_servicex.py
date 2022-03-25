@@ -1,6 +1,7 @@
 import ast
 from typing import Callable, Union
 
+import awkward as ak
 from func_adl import ObjectStream
 from func_adl.util_ast import parse_as_ast
 
@@ -19,7 +20,10 @@ class LEDMServiceX(BaseEDMLayer):
         return self.ds
 
     def as_awkward(self):
-        return self.ds.AsAwkwardArray().value()
+        def generate():
+            return self.ds.AsAwkwardArray().value()
+
+        return ak.virtual(generate)
 
     def wrap(self, s: ObjectStream):
         return LEDMServiceX(s)
