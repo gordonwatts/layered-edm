@@ -14,6 +14,13 @@ Layered Event Data Model and services.
 * [ ] Typing
 * [ ] Caching
 
+### Development Process
+
+* The `main` branch should always have its tests passing
+* Use in other package: `git clone` this package, and then do `pip install -e .` in your virtual env
+
+When is clearly useful, will start pushing to `pypi`.
+
 ## Goals
 
 Write something like this for servicex:

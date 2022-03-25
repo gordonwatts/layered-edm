@@ -11,7 +11,7 @@ awkward = "^1.8.0"
 func-adl = ">=3.0b9"
 
 [tool.poetry.dev-dependencies]
-pytest = "^5.2"
+pytest = ">=7.0.0"
 black = "^22.1.0"
 flake8 = "^4.0.1"
 pytest-mock = "^3.7.0"

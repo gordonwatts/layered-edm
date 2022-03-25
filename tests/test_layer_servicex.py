@@ -1,3 +1,7 @@
+from typing import Any, Iterable, Optional
+import pytest
+from .conftest import unparse
+from func_adl import ObjectStream, EventDataset
 import ast
 from typing import Any, Iterable, Optional
 
@@ -86,9 +90,8 @@ def test_sx_in_layer(simple_ds):
     data = my_evt(empty_evt(simple_ds))
     r = data.met.ds
 
-    assert (
-        ast.unparse(r.value())
-        == "Select(EventDataset(), lambda e: e.MissingET().First())"
+    assert unparse(r.value()) == unparse(
+        "Select(EventDataset(), lambda e: e.MissingET().First())"
     )
 
 
@@ -153,7 +156,7 @@ def test_sub_sx(simple_ds):
     )
     # fmt: on
 
-    assert ast.unparse(r.value()) == ast.unparse(expected.value())
+    assert unparse(r.value()) == unparse(expected.value())
 
 
 # def test_2layer(simple_ds):
