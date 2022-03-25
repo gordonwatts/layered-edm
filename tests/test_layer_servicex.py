@@ -1,5 +1,6 @@
 from typing import Any, Iterable, Optional
 import pytest
+from .conftest import unparse
 from func_adl import ObjectStream, EventDataset
 import ast
 import layered_edm as ledm
@@ -72,8 +73,7 @@ def test_sx_in_layer(simple_ds):
     r = data.met.ds
 
     assert (
-        ast.unparse(r.value())
-        == "Select(EventDataset(), lambda e: e.MissingET().First())"
+        unparse(r.value()) == "Select(EventDataset(), lambda e: e.MissingET().First())"
     )
 
 
@@ -137,7 +137,7 @@ def test_sub_sx(simple_ds):
     )
     # fmt: on
 
-    assert ast.unparse(r.value()) == ast.unparse(expected.value())
+    assert unparse(r.value()) == unparse(expected.value())
 
 
 # def test_2layer(simple_ds):
