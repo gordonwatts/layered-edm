@@ -196,7 +196,7 @@ def test_simple_collection(simple_awk_ds):
     assert len(awk_data.px) == 10
     assert simple_awk_ds.count == 4
     assert len(awk_data.py) == 10
-    assert simple_awk_ds.count == 4
+    assert simple_awk_ds.count == 6
 
     assert isinstance(awk_data, ak.Array)
     t = ak.type(awk_data)

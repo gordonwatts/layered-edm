@@ -163,7 +163,7 @@ class IterableTemplateEDMLayer(BaseTemplateEDMLayer):
                 }
             )
 
-        return ak.virtual(generate)
+        return ak.virtual(generate, cache=None)  # type: ignore
 
 
 # def edm_nested(class_to_wrap: Callable, format: str) -> Callable:
