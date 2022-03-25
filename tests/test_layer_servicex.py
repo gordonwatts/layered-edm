@@ -1,7 +1,3 @@
-from typing import Any, Iterable, Optional
-import pytest
-from .conftest import unparse
-from func_adl import ObjectStream, EventDataset
 import ast
 from typing import Any, Iterable, Optional
 
@@ -10,6 +6,8 @@ import layered_edm as ledm
 import pytest
 from func_adl import EventDataset, ObjectStream
 from layered_edm.layer_servicex import LEDMServiceX
+
+from .conftest import unparse
 
 
 @pytest.fixture
