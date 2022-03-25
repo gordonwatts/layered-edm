@@ -24,19 +24,6 @@ def simple_ds() -> ObjectStream:
 
 
 @pytest.fixture
-def simple_awk_ds() -> ObjectStream:
-    "Returns the a dummy awkward when value() is called"
-
-    class my_evt_ds(EventDataset):
-        async def execute_result_async(
-            self, a: ast.AST, _title: Optional[str] = None
-        ) -> Any:
-            return ak.Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-
-    return my_evt_ds()
-
-
-@pytest.fixture
 def simple_ds2() -> ObjectStream:
     "Returns the ast when value() is called"
 
@@ -45,6 +32,28 @@ def simple_ds2() -> ObjectStream:
             self, a: ast.AST, _title: Optional[str] = None
         ) -> Any:
             return a
+
+    return my_evt_ds()
+
+
+@pytest.fixture
+def simple_awk_ds() -> ObjectStream:
+    "Returns the a dummy awkward when value() is called"
+
+    class my_evt_ds(EventDataset):
+        def __init__(self):
+            super().__init__()
+            self._count = 0
+
+        @property
+        def count(self) -> int:
+            return self._count
+
+        async def execute_result_async(
+            self, a: ast.AST, _title: Optional[str] = None
+        ) -> Any:
+            self._count += 1
+            return ak.Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 
     return my_evt_ds()
 
@@ -123,9 +132,11 @@ def test_as_awk(simple_awk_ds):
         ...
 
     data = my_evt(empty_evt(simple_awk_ds))
+    assert simple_awk_ds.count == 0
     r = data.met.as_awkward()
     assert isinstance(r, ak.Array)
     assert len(r) == 10
+    assert simple_awk_ds.count == 1
 
 
 class _test_sub_objs:
@@ -155,6 +166,63 @@ def test_sub_sx(simple_ds):
     # fmt: on
 
     assert unparse(r.value()) == unparse(expected.value())
+
+
+def test_simple_collection(simple_awk_ds):
+    "Test a collection of objects connected"
+
+    class jet:
+        @property
+        @ledm.remap(lambda e: e.px())
+        def px(self) -> float:
+            ...
+
+        @property
+        @ledm.remap(lambda e: e.py())
+        def py(self) -> float:
+            ...
+
+    @ledm.edm_sx
+    class my_evt:
+        @property
+        @ledm.remap(lambda e: e.subs())
+        def subs(self) -> Iterable[jet]:
+            ...
+
+    data = my_evt(simple_awk_ds)
+    awk_data = data.subs.as_awkward()
+    assert simple_awk_ds.count == 0
+
+    assert len(awk_data.px) == 10
+    assert simple_awk_ds.count == 4
+    assert len(awk_data.py) == 10
+    assert simple_awk_ds.count == 6
+
+    assert isinstance(awk_data, ak.Array)
+    t = ak.type(awk_data)
+    assert t.length == 10
+    assert t.keys() == ["px", "py"]
+    assert len(awk_data) == 10
+
+
+@pytest.mark.skip("this crashes hard")
+def test_virtual_virtual():
+    def generate_1():
+        return ak.Array([1, 2, 3])
+
+    def generate_2():
+        return ak.Array([4, 5, 6])
+
+    def generate_record():
+        return ak.Array(
+            {
+                "a": ak.virtual(generate_1, length=3, cache=None),  # type: ignore
+                "b": ak.virtual(generate_2, length=3, cache=None),  # type: ignore
+            }
+        )
+
+    a = ak.virtual(generate_record)
+    print(a.a)
 
 
 # def test_2layer(simple_ds):

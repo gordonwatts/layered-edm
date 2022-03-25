@@ -3,8 +3,12 @@
 # from .base_layer import BaseEDMLayer
 # from .layer_awkward import LEDMAwkward
 # from .layer_servicex import LEDMServiceX
-# import awkward as ak
+from typing import Any, Callable, Optional, Tuple, Type, get_args, get_type_hints
 
+import awkward as ak
+
+from layered_edm.base_layer import BaseEDMLayer
+from layered_edm.util_types import is_iterable
 
 # def convert_format(value: BaseEDMLayer, requested_format: str):
 #     current_format = value.format
@@ -24,12 +28,6 @@
 #     elif format == "sx":
 #         return LEDMServiceX(value)
 #     raise NotImplementedError(f"Format {format} not implemented")
-
-
-from typing import Any, Callable, Optional, Tuple, Type, get_args, get_type_hints
-
-from layered_edm.base_layer import BaseEDMLayer
-from layered_edm.util_types import is_iterable
 
 
 def _is_terminal(t: Type) -> bool:
@@ -85,7 +83,7 @@ class BaseTemplateEDMLayer(BaseEDMLayer):
         new_expr = self._make_expr_call(expr.ds, mod_call)
         new_expr_wrapped = expr.wrap(new_expr)
 
-        # If the return type is not a simple object, then we need to
+        # If the return type is not a simple type (float, int), then we need to
         # create a new template so we can follow it!
         if rtn_type is not None and not _is_terminal(rtn_type):
             if is_iterable(rtn_type):
@@ -152,6 +150,20 @@ class IterableTemplateEDMLayer(BaseTemplateEDMLayer):
     def _make_expr_call(self, expr: BaseEDMLayer, callback: Callable) -> BaseEDMLayer:
         expr = self._get_expression()
         return expr.iterable_map(callback)
+
+    def as_awkward(self) -> ak.Array:
+        """Materialize this array as a list of sub-arrays"""
+
+        def generate():
+            return ak.Array(
+                {
+                    item: getattr(self, item).as_awkward()
+                    for item in dir(self._template)
+                    if not item.startswith("_")
+                }
+            )
+
+        return ak.virtual(generate, cache=None)  # type: ignore
 
 
 # def edm_nested(class_to_wrap: Callable, format: str) -> Callable:

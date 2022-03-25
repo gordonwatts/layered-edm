@@ -1,9 +1,12 @@
 from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Callable, Iterable, List
+
+import awkward as ak
+import layered_edm as ledm
 import pytest
 from layered_edm.base_layer import BaseEDMLayer
-import layered_edm as ledm
 from layered_edm.layer_nested import BaseTemplateEDMLayer
 
 
@@ -126,6 +129,21 @@ def test_sub_object_remap_iterable(mock_layer, mocker):
     r = mocker.MagicMock()
     mock_layer.ds.make_loop.call_args_list[0][0][0](r)
     r.my_prop.assert_called_once()
+
+
+def test_sub_object_remap_collection(mock_layer, mocker):
+    "A sub object with a single item"
+
+    class main_obj:
+        @property
+        @ledm.remap()
+        def subs(self) -> Iterable[_test_sub_obj_remap]:
+            ...
+
+    d = BaseTemplateEDMLayer(mock_layer, main_obj)
+    result = d.subs.as_awkward()
+
+    assert isinstance(result, ak.Array)
 
 
 # # def test_defined_nested():
