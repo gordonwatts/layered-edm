@@ -1,10 +1,13 @@
-from typing import Any, Iterable, Optional
-import pytest
-from .conftest import unparse
-from func_adl import ObjectStream, EventDataset
 import ast
+from typing import Any, Iterable, Optional
+
+import awkward as ak
 import layered_edm as ledm
+import pytest
+from func_adl import EventDataset, ObjectStream
 from layered_edm.layer_servicex import LEDMServiceX
+
+from .conftest import unparse
 
 
 @pytest.fixture
@@ -16,6 +19,19 @@ def simple_ds() -> ObjectStream:
             self, a: ast.AST, _title: Optional[str] = None
         ) -> Any:
             return a
+
+    return my_evt_ds()
+
+
+@pytest.fixture
+def simple_awk_ds() -> ObjectStream:
+    "Returns the a dummy awkward when value() is called"
+
+    class my_evt_ds(EventDataset):
+        async def execute_result_async(
+            self, a: ast.AST, _title: Optional[str] = None
+        ) -> Any:
+            return ak.Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 
     return my_evt_ds()
 
@@ -94,7 +110,7 @@ def test_as_sx(simple_ds):
     assert isinstance(r, ObjectStream)
 
 
-def test_as_awk(simple_ds):
+def test_as_awk(simple_awk_ds):
     @ledm.edm_sx
     class my_evt:
         @property
@@ -106,9 +122,10 @@ def test_as_awk(simple_ds):
     class empty_evt:
         ...
 
-    data = my_evt(empty_evt(simple_ds))
+    data = my_evt(empty_evt(simple_awk_ds))
     r = data.met.as_awkward()
-    assert isinstance(r, ast.AST)
+    assert isinstance(r, ak.Array)
+    assert len(r) == 10
 
 
 class _test_sub_objs:
