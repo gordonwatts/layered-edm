@@ -23,7 +23,7 @@ class LEDMServiceX(BaseEDMLayer):
         def generate():
             return self.ds.AsAwkwardArray().value()
 
-        return ak.virtual(generate, cache=None)
+        return ak.virtual(generate, cache=None)  # type: ignore
 
     def wrap(self, s: ObjectStream):
         return LEDMServiceX(s)

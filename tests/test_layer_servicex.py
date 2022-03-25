@@ -216,8 +216,8 @@ def test_virtual_virtual():
     def generate_record():
         return ak.Array(
             {
-                "a": ak.virtual(generate_1, length=3, cache=None),
-                "b": ak.virtual(generate_2, length=3, cache=None),
+                "a": ak.virtual(generate_1, length=3, cache=None),  # type: ignore
+                "b": ak.virtual(generate_2, length=3, cache=None),  # type: ignore
             }
         )
 
