@@ -72,8 +72,8 @@ def test_sx_in_layer(simple_ds):
     data = my_evt(empty_evt(simple_ds))
     r = data.met.ds
 
-    assert (
-        unparse(r.value()) == "Select(EventDataset(), lambda e: e.MissingET().First())"
+    assert unparse(r.value()) == unparse(
+        "Select(EventDataset(), lambda e: e.MissingET().First())"
     )
 
 
