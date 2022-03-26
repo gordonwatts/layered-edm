@@ -1,33 +1,9 @@
-# from __future__ import annotations
-# from typing import Any, Callable, Optional
-# from .base_layer import BaseEDMLayer
-# from .layer_awkward import LEDMAwkward
-# from .layer_servicex import LEDMServiceX
 from typing import Any, Callable, Optional, Tuple, Type, get_args, get_type_hints
 
 import awkward as ak
 
 from layered_edm.base_layer import BaseEDMLayer
 from layered_edm.util_types import is_iterable
-
-# def convert_format(value: BaseEDMLayer, requested_format: str):
-#     current_format = value.format
-#     if current_format == requested_format:
-#         return value.ds
-#     if requested_format == "awk":
-#         if current_format == "sx":
-#             return LEDMAwkward(value.ds.value())
-#     raise NotImplementedError(
-#         f"Conversion from {current_format} to {requested_format} not implemented"
-#     )
-
-
-# def make_holder(value: Any, format: str) -> BaseEDMLayer:
-#     if format == "awk":
-#         return LEDMAwkward(value)
-#     elif format == "sx":
-#         return LEDMServiceX(value)
-#     raise NotImplementedError(f"Format {format} not implemented")
 
 
 def _is_terminal(t: Type) -> bool:
@@ -164,23 +140,3 @@ class IterableTemplateEDMLayer(BaseTemplateEDMLayer):
             )
 
         return ak.virtual(generate, cache=None)  # type: ignore
-
-
-# def edm_nested(class_to_wrap: Callable, format: str) -> Callable:
-#     "Creates a class edm based on an servicex dataset. Nothing is implicit"
-
-#     def make_it(layer: BaseEDMLayer):
-#         return LEDMLayerNested(layer, class_to_wrap, format)
-
-#     return make_it
-
-
-# def nest(*class_chain):
-#     def build_class(*args, **kwargs):
-#         back_order = list(reversed(class_chain))
-#         result = back_order[0](*args, *kwargs)
-#         for cls in back_order[1:]:
-#             result = cls(result)
-#         return result
-
-#     return build_class
