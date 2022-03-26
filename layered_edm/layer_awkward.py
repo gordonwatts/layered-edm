@@ -86,7 +86,7 @@ def edm_awk(class_to_wrap: Callable) -> Callable:
     return make_it
 
 
-def add_awk_behavior(behavior: type) -> Callable:
+def add_awk_behavior(behavior: Union[type, str]) -> Callable:
     """You can add multiple behaviors, but only once per app right now!
 
     Args:
@@ -96,10 +96,19 @@ def add_awk_behavior(behavior: type) -> Callable:
         Callable: _description_
     """
 
+    if isinstance(behavior, str):
+        type_behavior = ak.behavior.get(behavior, None)
+        if type_behavior is None:
+            raise ValueError(
+                f"No behavior named {behavior} is declared to ak.behavior."
+            )
+    else:
+        type_behavior = behavior
+
     def add_behavior(cls: type) -> type:
         if not hasattr(cls, "_awk_behaviors"):
             setattr(cls, "_awk_behaviors", [])
-        getattr(cls, "_awk_behaviors").append(behavior)
+        getattr(cls, "_awk_behaviors").append(type_behavior)
         return cls
 
     return add_behavior
