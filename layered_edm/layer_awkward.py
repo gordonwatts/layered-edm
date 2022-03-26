@@ -50,7 +50,7 @@ class LEDMAwkwardConverter(BaseEDMLayer):
         if isinstance(s, ak.Array):
             return LEDMAwkward(s)
 
-        return LEDMAwkwardConverter(s)
+        raise NotImplementedError()  # pragma: no cover
 
     def single_item_map(self, callback: Callable) -> Any:
         return callback(self)
