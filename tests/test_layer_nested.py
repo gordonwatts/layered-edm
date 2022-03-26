@@ -25,6 +25,9 @@ class simple_array_layer(BaseEDMLayer):
         "Call on a single item"
         return callback(self.ds)
 
+    def as_awkward(self) -> ak.Array:
+        raise NotImplementedError()  # pragma: no cover
+
 
 @dataclass
 class single_item_test_data:
@@ -144,20 +147,3 @@ def test_sub_object_remap_collection(mock_layer, mocker):
     result = d.subs.as_awkward()
 
     assert isinstance(result, ak.Array)
-
-
-# # def test_defined_nested():
-# #     @ledm.edm_nested
-# #     class second_level:
-# #         @property
-# #         @ledm.remap(lambda ds: ds.forker * 2)
-# #         def met(self):
-# #             ...
-
-# #     composite = ledm.nest(second_level, simple_array_layer)
-
-# #     d = composite([2, 4, 6])
-# #     assert len(d.met) == 3
-# #     assert d.met[0] == 4
-# #     assert d.met[1] == 8
-# #     assert d.met[2] == 12
