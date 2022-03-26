@@ -56,7 +56,7 @@ class BaseTemplateEDMLayer(BaseEDMLayer):
         # Now, call remapping function. To do this we need the current
         # expression we are working on, and then wrap it back up.
         expr = self._get_expression()
-        new_expr = self._make_expr_call(expr.ds, mod_call)
+        new_expr = self._make_expr_call(mod_call)
         new_expr_wrapped = expr.wrap(new_expr)
 
         # If the return type is not a simple type (float, int), then we need to
@@ -70,7 +70,7 @@ class BaseTemplateEDMLayer(BaseEDMLayer):
 
         return new_expr_wrapped
 
-    def _make_expr_call(self, expr: BaseEDMLayer, callback: Callable) -> BaseEDMLayer:
+    def _make_expr_call(self, callback: Callable) -> BaseEDMLayer:
         """Make a call to a remapping function.
 
         Args:
@@ -126,7 +126,7 @@ class IterableTemplateEDMLayer(BaseTemplateEDMLayer):
     def __init__(self, wrapped: BaseEDMLayer, template: object):
         super().__init__(wrapped, template)
 
-    def _make_expr_call(self, expr: BaseEDMLayer, callback: Callable) -> BaseEDMLayer:
+    def _make_expr_call(self, callback: Callable) -> BaseEDMLayer:
         expr = self._get_expression()
         return expr.iterable_map(callback)
 
