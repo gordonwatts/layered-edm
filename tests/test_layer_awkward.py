@@ -201,6 +201,52 @@ def test_wrap_other_layer_in_awk():
     assert str(data.y) == str(ak.Array([3, 4, 5]))
 
 
+def test_aw_jets_behavior_by_name(simple_ds):
+    "Test adding a pre-existing, very simple, behavior"
+
+    class awk_my_behavior(ak.Array):
+        @property
+        def x2(self):
+            return self.x * 2
+
+    ak.behavior["test_aw_jets_behavior_by_name"] = awk_my_behavior
+
+    @ledm.edm_awk
+    @ledm.add_awk_behavior("test_aw_jets_behavior_by_name")
+    class my_evt:
+        ...
+
+    vector = ak.Array(
+        [
+            [{"x": 1, "y": 2, "z": 3}, {"x": 4, "y": 5, "z": 6}],
+        ],
+    )
+
+    data = my_evt(vector)
+
+    print(ak.type(data.ds.ds))
+
+    assert ak.all(data.x2.as_awkward() == data.x.as_awkward() * 2)
+
+
+def test_aw_jets_behavior_by_name_bad(simple_ds):
+    "Test adding a pre-existing, very simple, behavior"
+
+    class awk_my_behavior(ak.Array):
+        @property
+        def x2(self):
+            return self.x * 2
+
+    with pytest.raises(ValueError) as e:
+
+        @ledm.edm_awk
+        @ledm.add_awk_behavior("test_aw_jets_behavior_by_name_bad")
+        class my_evt:
+            ...
+
+    assert "test_aw_jets_behavior_by_name_bad" in str(e)
+
+
 # def test_return_as_property(awkward_one):
 #     a = ledm.LEDMAwkward(awkward_one)
 #     assert isinstance(a.x, ak.Array)
