@@ -1,5 +1,4 @@
 # import pytest
-from ctypes import Union
 from dataclasses import dataclass
 from typing import Any, Callable, Iterable
 import awkward as ak

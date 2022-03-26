@@ -1,4 +1,3 @@
-from multiprocessing.dummy import Array
 from typing import Any, Callable, Union
 import awkward as ak
 
