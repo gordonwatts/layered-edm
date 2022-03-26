@@ -139,6 +139,22 @@ def test_as_awk(simple_awk_ds):
     assert simple_awk_ds.count == 1
 
 
+def test_as_awk_repr(simple_awk_ds):
+    @ledm.edm_sx
+    class my_evt:
+        @property
+        @ledm.remap(lambda ds: ds.Select(lambda e: e.MissingET().First()))
+        def met(self):
+            ...
+
+    @ledm.edm_sx
+    class empty_evt:
+        ...
+
+    data = my_evt(empty_evt(simple_awk_ds))
+    assert repr(data.met.as_awkward()) == repr(ak.Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]))
+
+
 class _test_sub_objs:
     @property
     @ledm.remap(lambda so: so.prop())
