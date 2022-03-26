@@ -55,6 +55,9 @@ class LEDMAwkwardConverter(BaseEDMLayer):
     def single_item_map(self, callback: Callable) -> Any:
         return callback(self)
 
+    def as_awkward(self) -> ak.Array:
+        raise NotImplementedError()  # pragma: no cover
+
 
 def edm_awk(class_to_wrap: Callable) -> Callable:
     "Creates a class edm based on an awkward array"

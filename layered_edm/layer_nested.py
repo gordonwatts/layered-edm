@@ -115,6 +115,9 @@ class BaseTemplateEDMLayer(BaseEDMLayer):
     def single_item_map(self, callback: Callable) -> Any:
         raise RuntimeError("Should not be mapping a single item in a template")
 
+    def as_awkward(self) -> ak.Array:
+        raise NotImplementedError()  # pragma: no cover
+
 
 class IterableTemplateEDMLayer(BaseTemplateEDMLayer):
     "Wrap a template that deals with a collection (list, etc.) of a particular data type"

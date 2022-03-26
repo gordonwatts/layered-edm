@@ -1,5 +1,8 @@
 from __future__ import annotations
+
 from typing import Any, Callable
+
+import awkward as ak
 import layered_edm as ledm
 from layered_edm.base_layer import BaseEDMLayer
 
@@ -16,6 +19,9 @@ def test_base_getattr():
             return c_layer(s)
 
         def single_item_map(self, callback: Callable) -> Any:
+            raise NotImplementedError()
+
+        def as_awkward(self) -> ak.Array:
             raise NotImplementedError()
 
     bl = c_layer(c())

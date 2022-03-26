@@ -25,6 +25,9 @@ class simple_array_layer(BaseEDMLayer):
         "Call on a single item"
         return callback(self.ds)
 
+    def as_awkward(self) -> ak.Array:
+        raise NotImplementedError()  # pragma: no cover
+
 
 @dataclass
 class single_item_test_data:

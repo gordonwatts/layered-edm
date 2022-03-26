@@ -1,6 +1,9 @@
 from __future__ import annotations
-from abc import abstractmethod, ABC
+
+from abc import ABC, abstractmethod
 from typing import Any, Callable, Optional
+
+import awkward as ak
 
 
 class BaseEDMLayer(ABC):
@@ -52,6 +55,16 @@ class BaseEDMLayer(ABC):
             BaseEDMLayer: The new expression
         """
         ...
+
+    @abstractmethod
+    def as_awkward(self) -> ak.Array:
+        """Return an awkward array representation of this data.
+
+        Make the array virtual if at all possible.
+
+        Returns:
+            ak.Array: array representation of the data
+        """
 
 
 def remap(l_func: Optional[Callable] = lambda a: a) -> Callable:
