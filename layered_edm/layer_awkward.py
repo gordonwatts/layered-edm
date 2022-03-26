@@ -32,13 +32,45 @@ class LEDMAwkward(BaseEDMLayer):
         self._ds = ak.Array(self.ds, with_name=b_name)
 
 
+class LEDMAwkwardConverter(BaseEDMLayer):
+    """Capture another layer, and as we cross it, convert everything
+    into an awkward layer.
+    """
+
+    def __init__(self, ds: BaseEDMLayer):
+        super().__init__(None)
+
+        self._captured_ds = ds
+
+    def __getattr__(self, name: str) -> Any:
+        "Access attributes on the captured guy, and convert to awk"
+        return getattr(self._captured_ds, name).as_awkward()
+
+    def wrap(self, s: Any) -> BaseEDMLayer:
+        if isinstance(s, ak.Array):
+            return LEDMAwkward(s)
+
+        raise NotImplementedError()  # pragma: no cover
+
+    def single_item_map(self, callback: Callable) -> Any:
+        return callback(self)
+
+
 def edm_awk(class_to_wrap: Callable) -> Callable:
     "Creates a class edm based on an awkward array"
 
     def make_it(arr: Union[ak.Array, LEDMAwkward]):
         to_wrap = arr
+
         if isinstance(to_wrap, ak.Array):
+            # Raw awkward array!
             to_wrap = LEDMAwkward(to_wrap)
+
+        if not isinstance(to_wrap, LEDMAwkward):
+            # Convert from some non-awkward type
+            to_wrap = LEDMAwkwardConverter(to_wrap)
+
+        # Look for associated behaviors
         if hasattr(class_to_wrap, "_awk_behaviors"):
             if len(class_to_wrap._awk_behaviors) == 1:
                 to_wrap.add_behavior(class_to_wrap._awk_behaviors[0])

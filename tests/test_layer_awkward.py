@@ -1,8 +1,10 @@
 # import pytest
-from typing import Iterable
+from dataclasses import dataclass
+from typing import Any, Callable, Iterable
 import awkward as ak
 import pytest
 import layered_edm as ledm
+from layered_edm.base_layer import BaseEDMLayer
 
 # @pytest.fixture
 # def awkward_one():
@@ -127,6 +129,76 @@ def test_aw_jets_behavior_test_2(simple_ds):
 
     assert ak.all(data.x2.as_awkward() == data.x.as_awkward() * 2)
     assert ak.all(data.x3.as_awkward() == data.x.as_awkward() * 3)
+
+
+def test_wrap_other_layer_in_awk_redirect():
+    class my_other_layer(BaseEDMLayer):
+        def __init__(self, given_data=None):
+            @dataclass
+            class data:
+                x = [1, 2, 3]
+                y = [3, 4, 5]
+
+            if given_data is None:
+                given_data = data()
+            super().__init__(given_data)
+
+        def wrap(self, s: Any) -> BaseEDMLayer:
+            return my_other_layer(s)
+
+        def single_item_map(self, callback: Callable) -> Any:
+            return callback(self._ds)
+
+        def as_awkward(self) -> ak.Array:
+            if isinstance(self._ds, my_other_layer):
+                raise NotImplementedError()
+            return ak.Array(self._ds)
+
+    @ledm.edm_awk
+    class my_evt:
+        @property
+        @ledm.remap(lambda e: e.x + 1)
+        def met(self):
+            ...
+
+    data = my_evt(my_other_layer())
+
+    assert str(data.met.as_awkward()) == str(ak.Array([2, 3, 4]))
+
+
+def test_wrap_other_layer_in_awk():
+    class my_other_layer(BaseEDMLayer):
+        def __init__(self, given_data=None):
+            @dataclass
+            class data:
+                x = [1, 2, 3]
+                y = [3, 4, 5]
+
+            if given_data is None:
+                given_data = data()
+            super().__init__(given_data)
+
+        def wrap(self, s: Any) -> BaseEDMLayer:
+            return my_other_layer(s)
+
+        def single_item_map(self, callback: Callable) -> Any:
+            return callback(self._ds)
+
+        def as_awkward(self) -> ak.Array:
+            if isinstance(self._ds, my_other_layer):
+                raise NotImplementedError()
+            return ak.Array(self._ds)
+
+    @ledm.edm_awk
+    class my_evt:
+        @property
+        @ledm.remap(lambda e: e.x + 1)
+        def met(self):
+            ...
+
+    data = my_evt(my_other_layer())
+
+    assert str(data.y) == str(ak.Array([3, 4, 5]))
 
 
 # def test_return_as_property(awkward_one):
