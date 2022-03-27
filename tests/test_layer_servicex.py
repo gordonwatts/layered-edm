@@ -221,7 +221,7 @@ def test_simple_collection(simple_awk_ds):
     assert len(awk_data) == 10
 
 
-@pytest.mark.skip("this crashes hard")
+# @pytest.mark.skip("this crashes hard")
 def test_virtual_virtual():
     def generate_1():
         return ak.Array([1, 2, 3])
