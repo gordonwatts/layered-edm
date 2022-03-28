@@ -26,7 +26,7 @@ class simple_array_layer(BaseEDMLayer):
         return callback(self.ds)
 
     def as_awkward(self) -> ak.Array:
-        raise NotImplementedError()  # pragma: no cover
+        return ak.Array([1, 2, 3, 4, 5])
 
 
 @dataclass
