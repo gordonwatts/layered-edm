@@ -1,6 +1,7 @@
-from typing import Any, Dict, Optional, Type, TypeVar
-from typing import get_args
+import uuid
+from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, get_args
 
+import awkward as ak
 
 # TODO: This all comes from func_adl - should we keep it there
 # since that needs to be part of this?
@@ -80,3 +81,37 @@ def _resolve_type(t: Type, parameters: Dict[str, Type]) -> Optional[Type]:
 
     # Non-parameterized types are easy
     return t
+
+
+def class_behavior(class_to_wrap: Callable) -> Optional[str]:
+    """Scan a given class for any defined behaviors.
+
+    Args:
+        class_to_wrap (type): Class to scan
+
+    Returns:
+        type: The behavior type, or None if no behaviors are found.
+    """
+    behavior_list: Optional[List[type]] = getattr(class_to_wrap, "_awk_behaviors", None)
+    if behavior_list is None:
+        return None
+
+    behavior_name: Optional[str] = None
+    behavior_object = None
+    if len(behavior_list) == 1:
+        behavior_name = behavior_list[0].__name__
+        behavior_object = behavior_list[0]
+    else:
+        # Multiple behaviors are done by multiple inheritance.
+        class all_behaviors(*(class_to_wrap._awk_behaviors)):  # type: ignore
+            pass
+
+        behavior_name = str(uuid.uuid4())
+        behavior_object = all_behaviors
+
+    # Make sure the behavior is registered
+    if ("*", behavior_name) not in ak.behavior:
+        ak.behavior["*", behavior_name] = behavior_object
+        ak.behavior[behavior_name] = behavior_object
+
+    return behavior_name

@@ -184,7 +184,8 @@ def test_sub_sx(simple_ds):
     assert unparse(r.value()) == unparse(expected.value())
 
 
-def test_simple_collection(simple_awk_ds):
+@pytest.mark.skip("virtual array disabled behaviors so not checking for now")
+def test_simple_collection_as_awk(simple_awk_ds):
     "Test a collection of objects connected"
 
     class jet:
@@ -219,6 +220,62 @@ def test_simple_collection(simple_awk_ds):
     assert t.length == 10
     assert t.keys() == ["px", "py"]
     assert len(awk_data) == 10
+
+
+def test_simple_collection_awk_behavior(simple_awk_ds):
+    "Add awk behavior to a collection"
+
+    class my_behavior(ak.Array):
+        @property
+        def px2(self):
+            return 2 * self.px
+
+    @ledm.add_awk_behavior(my_behavior)
+    class my_jet:
+        @property
+        @ledm.remap(lambda e: e.px())
+        def px(self) -> float:
+            ...
+
+        @property
+        @ledm.remap(lambda e: e.py())
+        def py(self) -> float:
+            ...
+
+    @ledm.edm_sx
+    class my_evt:
+        @property
+        @ledm.remap(lambda e: e.subs())
+        def subs(self) -> Iterable[my_jet]:
+            ...
+
+    data = my_evt(simple_awk_ds)
+    awk_data = data.subs.as_awkward()
+    assert str(awk_data.px * 2) == str(awk_data.px2)
+
+
+def test_it():
+    # TODO: Remove this when the virtual array issue is solved
+    class my_extras(ak.Array):
+        @property
+        def px2(self):
+            return 2 * self.px
+
+    ak.behavior["*", "my_extras"] = my_extras
+
+    def generate():
+        a = ak.Array(
+            {
+                "px": [1, 2, 3, 4, 5, 6],
+            },
+            with_name="my_extras",
+        )
+        return a
+
+    # a = ak.virtual(generate)  # causes crash
+    a = generate()  # works
+
+    assert str(a.px2) == str(2 * a.px)
 
 
 @pytest.mark.skip("this crashes hard")

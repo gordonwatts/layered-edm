@@ -3,7 +3,7 @@ from typing import Any, Callable, Optional, Tuple, Type, get_args, get_type_hint
 import awkward as ak
 
 from layered_edm.base_layer import BaseEDMLayer
-from layered_edm.util_types import is_iterable
+from layered_edm.util_types import class_behavior, is_iterable
 
 
 def _is_terminal(t: Type) -> bool:
@@ -24,9 +24,9 @@ def _is_terminal(t: Type) -> bool:
 class BaseTemplateEDMLayer(BaseEDMLayer):
     "Wrap a template that deals with a particular data type"
 
-    def __init__(self, wrapped: BaseEDMLayer, template: object):
+    def __init__(self, wrapped: BaseEDMLayer, template: type):
         super().__init__(wrapped)
-        self._template = template
+        self._template: type = template
         self._expression: Optional[BaseEDMLayer] = None
 
     def _get_expression(self) -> BaseEDMLayer:
@@ -123,7 +123,7 @@ class IterableTemplateEDMLayer(BaseTemplateEDMLayer):
     "Wrap a template that deals with a collection (list, etc.) of a particular data type"
     ...
 
-    def __init__(self, wrapped: BaseEDMLayer, template: object):
+    def __init__(self, wrapped: BaseEDMLayer, template: type):
         super().__init__(wrapped, template)
 
     def _make_expr_call(self, callback: Callable) -> BaseEDMLayer:
@@ -133,13 +133,17 @@ class IterableTemplateEDMLayer(BaseTemplateEDMLayer):
     def as_awkward(self) -> ak.Array:
         """Materialize this array as a list of sub-arrays"""
 
+        behavior_name = class_behavior(self._template)
+
         def generate():
             return ak.Array(
                 {
                     item: getattr(self, item).as_awkward()
                     for item in dir(self._template)
                     if not item.startswith("_")
-                }
+                },
+                with_name=behavior_name,
             )
 
-        return ak.virtual(generate, cache=None)  # type: ignore
+        # TODO: return to virtual when we can put a behavior in the virtual array
+        return generate()  # ak.virtual(generate)  # type: ignore
