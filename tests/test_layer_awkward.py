@@ -198,6 +198,7 @@ def test_aw_jets_behavior_by_name(simple_ds):
             return self.x * 2
 
     ak.behavior["test_aw_jets_behavior_by_name"] = awk_my_behavior
+    ak.behavior["*", "test_aw_jets_behavior_by_name"] = awk_my_behavior
 
     @ledm.edm_awk
     @ledm.add_awk_behavior("test_aw_jets_behavior_by_name")
@@ -215,6 +216,38 @@ def test_aw_jets_behavior_by_name(simple_ds):
     print(ak.type(data.ds.ds))
 
     assert ak.all(data.x2.as_awkward() == data.x.as_awkward() * 2)
+
+
+def test_aw_jets_behavior_right_name(simple_ds):
+    "Test adding a pre-existing, very simple, behavior"
+
+    class awk_my_behavior(ak.Array):
+        @property
+        def x2(self):
+            return self.x * 2
+
+    ak.behavior["test_aw_jets_behavior_by_name"] = awk_my_behavior
+
+    @ledm.add_awk_behavior("test_aw_jets_behavior_by_name")
+    class jet:
+        @property
+        @ledm.remap(lambda j: j.x2)
+        def x(self) -> float:
+            ...
+
+    @ledm.edm_awk
+    class my_evt:
+        @property
+        @ledm.remap(lambda e: e.jets)
+        def jets(self) -> Iterable[jet]:
+            ...
+
+    vector = ak.Array({"jets": [{"x": 1, "y": 2, "z": 3}, {"x": 4, "y": 5, "z": 6}]})
+
+    data = my_evt(vector)
+
+    a = data.jets.as_awkward()
+    assert "test_aw_jets_behavior_by_name" in str(a.layout)
 
 
 def test_aw_jets_behavior_by_name_bad(simple_ds):

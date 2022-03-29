@@ -1,5 +1,5 @@
 import uuid
-from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, get_args
+from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union, get_args
 
 import awkward as ak
 
@@ -83,6 +83,19 @@ def _resolve_type(t: Type, parameters: Dict[str, Type]) -> Optional[Type]:
     return t
 
 
+def _get_behavior_name(b_name: Union[str, type]):
+    if isinstance(b_name, str):
+        return b_name
+    return b_name.__name__
+
+
+def _get_behavior_object(b_name: Union[str, type]):
+    if isinstance(b_name, str):
+        return ak.behavior["*", b_name]
+    else:
+        return b_name
+
+
 def class_behavior(class_to_wrap: Callable) -> Optional[str]:
     """Scan a given class for any defined behaviors.
 
@@ -99,18 +112,20 @@ def class_behavior(class_to_wrap: Callable) -> Optional[str]:
     behavior_name: Optional[str] = None
     behavior_object = None
     if len(behavior_list) == 1:
-        behavior_name = behavior_list[0].__name__
-        behavior_object = behavior_list[0]
+        behavior_name = _get_behavior_name(behavior_list[0])
+        behavior_object = (
+            None if isinstance(behavior_list[0], str) else behavior_list[0]
+        )
     else:
         # Multiple behaviors are done by multiple inheritance.
-        class all_behaviors(*(class_to_wrap._awk_behaviors)):  # type: ignore
+        class all_behaviors(*(_get_behavior_object(c) for c in class_to_wrap._awk_behaviors)):  # type: ignore
             pass
 
         behavior_name = str(uuid.uuid4())
         behavior_object = all_behaviors
 
     # Make sure the behavior is registered
-    if ("*", behavior_name) not in ak.behavior:
+    if ("*", behavior_name) not in ak.behavior and behavior_object is not None:
         ak.behavior["*", behavior_name] = behavior_object
         ak.behavior[behavior_name] = behavior_object
 

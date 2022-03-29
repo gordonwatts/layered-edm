@@ -297,27 +297,3 @@ def test_simple_collection_awk_behavior(simple_awk_ds):
     data = my_evt(simple_awk_ds)
     awk_data = data.subs.as_awkward()
     assert str(awk_data.px * 2) == str(awk_data.px2)
-
-
-def test_it():
-    # TODO: Remove this when the virtual array issue is solved
-    class my_extras(ak.Array):
-        @property
-        def px2(self):
-            return 2 * self.px
-
-    ak.behavior["*", "my_extras"] = my_extras
-
-    def generate():
-        a = ak.Array(
-            {
-                "px": [1, 2, 3, 4, 5, 6],
-            },
-            with_name="my_extras",
-        )
-        return a
-
-    # a = ak.virtual(generate)  # causes crash
-    a = generate()  # works
-
-    assert str(a.px2) == str(2 * a.px)
