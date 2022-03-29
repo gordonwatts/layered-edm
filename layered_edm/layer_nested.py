@@ -116,7 +116,24 @@ class BaseTemplateEDMLayer(BaseEDMLayer):
         raise RuntimeError("Should not be mapping a single item in a template")
 
     def as_awkward(self) -> ak.Array:
-        raise NotImplementedError()  # pragma: no cover
+        """Generate awkward array for a single object (e.g not a collection)
+
+        Returns:
+            ak.Array: The resulting info
+        """
+        behavior_name = class_behavior(self._template)
+
+        def generate():
+            return ak.Array(
+                {
+                    item: ak.repartition(getattr(self, item).as_awkward(), None)
+                    for item in dir(self._template)
+                    if not item.startswith("_")
+                }
+            )
+
+        v_array = ak.virtual(generate)
+        return ak.with_parameter(v_array, "__record__", behavior_name)
 
 
 class IterableTemplateEDMLayer(BaseTemplateEDMLayer):
