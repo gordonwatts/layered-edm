@@ -97,6 +97,22 @@ def test_sub_object_remap_top_level(mock_layer):
     mock_layer.ds.my_prop.assert_called_once()
 
 
+def test_sub_object_remap_top_level_as_awk(mock_layer):
+    "A sub object with a single item"
+
+    class main_obj:
+        @property
+        @ledm.remap()
+        def sub(self) -> _test_sub_obj_remap:
+            ...
+
+    d = BaseTemplateEDMLayer(mock_layer, main_obj)
+    result = d.sub.as_awkward()
+
+    assert len(result) == 5
+    assert str(result.my_prop) == str(ak.Array([1, 2, 3, 4, 5]))
+
+
 def test_sub_object_remap(mock_layer):
     "A sub object with a single item"
 
