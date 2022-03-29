@@ -138,12 +138,11 @@ class IterableTemplateEDMLayer(BaseTemplateEDMLayer):
         def generate():
             return ak.Array(
                 {
-                    item: getattr(self, item).as_awkward()
+                    item: ak.repartition(getattr(self, item).as_awkward(), None)
                     for item in dir(self._template)
                     if not item.startswith("_")
-                },
-                with_name=behavior_name,
+                }
             )
 
-        # TODO: return to virtual when we can put a behavior in the virtual array
-        return generate()  # ak.virtual(generate)  # type: ignore
+        v_array = ak.virtual(generate)
+        return ak.with_parameter(v_array, "__record__", behavior_name)
