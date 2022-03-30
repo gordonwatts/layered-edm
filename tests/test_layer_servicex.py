@@ -165,6 +165,30 @@ def test_as_awk(simple_awk_ds):
     assert simple_awk_ds.count == 1
 
 
+def test_as_awk_logging(simple_awk_ds, caplog):
+    import logging
+
+    logging.basicConfig()
+    logger = logging.getLogger("layered_edm")
+    logger.setLevel(logging.DEBUG)
+
+    @ledm.edm_sx
+    class my_evt:
+        @property
+        @ledm.remap(lambda ds: ds.Select(lambda e: e.MissingET().First()))
+        def met(self):
+            ...
+
+    @ledm.edm_sx
+    class empty_evt:
+        ...
+
+    data = my_evt(empty_evt(simple_awk_ds))
+    data.met.as_awkward()
+
+    assert len(caplog.text) > 0
+
+
 def test_as_awk_virtual(simple_awk_ds_virtual):
     @ledm.edm_sx
     class my_evt:
