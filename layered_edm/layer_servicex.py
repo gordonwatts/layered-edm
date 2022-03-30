@@ -1,5 +1,6 @@
 import ast
 from typing import Callable, Union
+import logging
 
 from func_adl import ObjectStream
 from func_adl.util_ast import parse_as_ast
@@ -7,6 +8,7 @@ from func_adl.util_ast import parse_as_ast
 from layered_edm.layer_nested import BaseTemplateEDMLayer
 
 from .base_layer import BaseEDMLayer
+from .util_compat import unparse
 
 # TODO: the parse_as_ast should that be exported or put in a separate package?
 
@@ -19,6 +21,8 @@ class LEDMServiceX(BaseEDMLayer):
         return self.ds
 
     def as_awkward(self):
+        logger = logging.getLogger(__name__)
+        logger.debug(f"Issuing ServiceX Query for {unparse(self.ds.query_ast)}")
         return self.ds.AsAwkwardArray().value()
 
     def wrap(self, s: ObjectStream):
