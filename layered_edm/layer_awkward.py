@@ -31,6 +31,10 @@ class LEDMAwkward(BaseEDMLayer):
         """
         self._ds = ak.Array(self.ds, with_name=b_name)
 
+    def iterable_map(self, callback: Callable) -> BaseEDMLayer:
+        "Because everything is array operations, we just do this"
+        return callback(self.ds)
+
 
 class LEDMAwkwardConverter(BaseEDMLayer):
     """Capture another layer, and as we cross it, convert everything
@@ -57,6 +61,9 @@ class LEDMAwkwardConverter(BaseEDMLayer):
 
     def as_awkward(self) -> ak.Array:
         raise NotImplementedError()  # pragma: no cover
+
+    def iterable_map(self, callback: Callable) -> BaseEDMLayer:
+        raise NotImplementedError()
 
 
 def edm_awk(class_to_wrap: type) -> Callable:

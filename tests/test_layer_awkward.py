@@ -137,6 +137,9 @@ def test_wrap_other_layer_in_awk_redirect():
         def single_item_map(self, callback: Callable) -> Any:
             return callback(self._ds)
 
+        def iterable_map(self, callback: Callable) -> BaseEDMLayer:
+            raise NotImplementedError()
+
         def as_awkward(self) -> ak.Array:
             if isinstance(self._ds, my_other_layer):
                 raise NotImplementedError()
@@ -171,6 +174,9 @@ def test_wrap_other_layer_in_awk():
 
         def single_item_map(self, callback: Callable) -> Any:
             return callback(self._ds)
+
+        def iterable_map(self, callback: Callable) -> BaseEDMLayer:
+            raise NotImplementedError()
 
         def as_awkward(self) -> ak.Array:
             if isinstance(self._ds, my_other_layer):
@@ -231,7 +237,7 @@ def test_aw_jets_behavior_right_name(simple_ds):
     @ledm.add_awk_behavior("test_aw_jets_behavior_by_name")
     class jet:
         @property
-        @ledm.remap(lambda j: j.x2)
+        @ledm.remap(lambda j: j.x)
         def x(self) -> float:
             ...
 

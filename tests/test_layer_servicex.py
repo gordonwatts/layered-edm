@@ -277,18 +277,20 @@ def test_simple_collection_as_awk(simple_awk_ds):
 
     data = my_evt(simple_awk_ds)
     awk_data = data.subs.as_awkward()
-    assert simple_awk_ds.count == 0
+    # 1 because the first item had to be generated
+    assert simple_awk_ds.count == 1
 
     assert len(awk_data.px) == 10
-    assert simple_awk_ds.count == 2
+    assert simple_awk_ds.count == 1
     assert len(awk_data.py) == 10
-    assert simple_awk_ds.count == 2
+    assert simple_awk_ds.count == 1
 
     assert isinstance(awk_data, ak.Array)
     t = ak.type(awk_data)
     assert t.length == 10
     assert t.keys() == ["px", "py"]
     assert len(awk_data) == 10
+    assert simple_awk_ds.count == 2
 
 
 def test_simple_collection_awk_behavior(simple_awk_ds):

@@ -52,6 +52,6 @@ def edm_sx(class_to_wrap: Callable) -> Callable:
         if isinstance(to_wrap, ObjectStream):
             to_wrap = LEDMServiceX(to_wrap)
 
-        return BaseTemplateEDMLayer(to_wrap, class_to_wrap)
+        return BaseTemplateEDMLayer(to_wrap, class_to_wrap)  # type: ignore
 
     return make_it
