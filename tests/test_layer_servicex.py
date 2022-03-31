@@ -314,9 +314,41 @@ def test_simple_collection_as_awk(simple_awk_ds):
     assert isinstance(awk_data, ak.Array)
     t = ak.type(awk_data)
     assert t.length == 10
-    assert t.keys() == ["px", "py"]
+    assert set(t.keys()) == set(["px", "py"])
     assert len(awk_data) == 10
     assert simple_awk_ds.count == 2
+
+
+def test_simple_collection_with_behavior(simple_awk_ds):
+    "A behavior can alter how a virtual array is materalized - make sure we work around it"
+
+    class behave(ak.Array):
+        @property
+        def mine(self) -> float:
+            return self.px
+
+    @ledm.add_awk_behavior(behave)
+    class jet:
+        @property
+        @ledm.remap(lambda e: e.px())
+        def px(self) -> float:
+            ...
+
+        @property
+        @ledm.remap(lambda e: e.py())
+        def py(self) -> float:
+            ...
+
+    @ledm.edm_sx
+    class my_evt:
+        @property
+        @ledm.remap(lambda e: e.subs())
+        def subs(self) -> Iterable[jet]:
+            ...
+
+    data = my_evt(simple_awk_ds)
+    data.subs.as_awkward()
+    assert simple_awk_ds.count == 1
 
 
 def test_simple_collection_as_v_awk(simple_awk_ds_virtual_concat):
@@ -377,3 +409,37 @@ def test_simple_collection_awk_behavior(simple_awk_ds):
     data = my_evt(simple_awk_ds)
     awk_data = data.subs.as_awkward()
     assert str(awk_data.px * 2) == str(awk_data.px2)
+
+
+def test_it_out():
+    class my_behavior(ak.Array):
+        @property
+        def px2(self):
+            return 2 * self.px2
+
+    ak.behavior["my_behavior"] = my_behavior
+    ak.behavior["*", "my_behavior"] = my_behavior
+
+    count = 0
+
+    def generate1():
+        print("generate1")
+        nonlocal count
+        count += 1
+        return ak.Array([1, 2, 3])
+
+    def generate2():
+        print("generate2")
+        nonlocal count
+        count += 1
+        return ak.Array([4, 5, 6])
+
+    a1 = ak.virtual(generate1, length=3)
+    a2 = ak.virtual(generate2, length=3)
+
+    print("building a")
+    a = ak.Array({"a1": a1, "a2": a2})
+    a = ak.with_parameter(a, "__record__", "my_behavior")
+    print("accessing a")
+    print(f"a.a1: {a.a1}")
+    assert count == 1
