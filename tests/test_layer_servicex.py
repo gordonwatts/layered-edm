@@ -83,6 +83,33 @@ def simple_awk_ds_virtual() -> ObjectStream:
     return my_evt_ds()
 
 
+@pytest.fixture
+def simple_awk_ds_virtual_concat() -> ObjectStream:
+    "Returns an awk array that is virtual and contactted"
+
+    class my_evt_ds(EventDataset):
+        def __init__(self):
+            super().__init__()
+            self._count = 0
+
+        @property
+        def count(self) -> int:
+            return self._count
+
+        async def execute_result_async(
+            self, a: ast.AST, _title: Optional[str] = None
+        ) -> Any:
+            def generate():
+                self._count += 1
+                a1 = ak.Array([0, 1, 2, 3, 4])
+                a2 = ak.Array([5, 6, 7, 8, 9])
+                return ak.concatenate((a1, a2))
+
+            return ak.virtual(generate)
+
+    return my_evt_ds()
+
+
 def test_sx_empty_layer(simple_ds):
     @ledm.edm_sx
     class my_evt:
@@ -292,7 +319,7 @@ def test_simple_collection_as_awk(simple_awk_ds):
     assert simple_awk_ds.count == 2
 
 
-def test_simple_collection_as_v_awk(simple_awk_ds_virtual):
+def test_simple_collection_as_v_awk(simple_awk_ds_virtual_concat):
     "Virtual collection - simulates the uproot case where we load data from uproot"
 
     class jet:
@@ -313,7 +340,7 @@ def test_simple_collection_as_v_awk(simple_awk_ds_virtual):
         def subs(self) -> Iterable[jet]:
             ...
 
-    data = my_evt(simple_awk_ds_virtual)
+    data = my_evt(simple_awk_ds_virtual_concat)
     awk_data = data.subs.as_awkward()
 
     assert len(awk_data.px) == 10

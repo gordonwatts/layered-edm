@@ -131,7 +131,7 @@ class BaseTemplateEDMLayer(BaseEDMLayer):
         all_items = [item for item in dir(self._template) if not item.startswith("_")]
         assert len(all_items) > 0, "Template has no items"
 
-        first_item = getattr(self, all_items[0]).as_awkward()
+        first_item = ak.repartition(getattr(self, all_items[0]).as_awkward(), None)
         n_items = len(first_item)
 
         # Build the array
