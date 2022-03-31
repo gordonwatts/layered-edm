@@ -148,10 +148,8 @@ class BaseTemplateEDMLayer(BaseEDMLayer):
         )
 
         # Build the array
-        return ak.Array(
-            items,
-            with_name=behavior_name,
-        )
+        a = ak.Array(items)
+        return ak.with_parameter(a, "__record__", behavior_name)
 
 
 class IterableTemplateEDMLayer(BaseTemplateEDMLayer):
