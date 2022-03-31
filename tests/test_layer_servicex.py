@@ -314,7 +314,7 @@ def test_simple_collection_as_awk(simple_awk_ds):
     assert isinstance(awk_data, ak.Array)
     t = ak.type(awk_data)
     assert t.length == 10
-    assert t.keys() == ["px", "py"]
+    assert set(t.keys()) == set(["px", "py"])
     assert len(awk_data) == 10
     assert simple_awk_ds.count == 2
 

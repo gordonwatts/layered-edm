@@ -134,17 +134,21 @@ class BaseTemplateEDMLayer(BaseEDMLayer):
         first_item = getattr(self, all_items[0]).as_awkward()
         n_items = len(first_item)
 
+        items = {
+            item: ak.virtual(
+                lambda: ak.repartition(getattr(self, item).as_awkward(), None),
+                length=n_items,
+            )
+            for item in all_items[1:]
+        }
+
+        items[all_items[0]] = ak.virtual(
+            lambda: ak.repartition(first_item, None), length=n_items
+        )
+
         # Build the array
         return ak.Array(
-            {
-                item: ak.repartition(first_item, None)
-                if idx == 0
-                else ak.virtual(
-                    lambda: ak.repartition(getattr(self, item).as_awkward(), None),
-                    length=n_items,
-                )
-                for idx, item in enumerate(all_items)
-            },
+            items,
             with_name=behavior_name,
         )
 
