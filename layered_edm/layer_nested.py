@@ -137,7 +137,7 @@ class BaseTemplateEDMLayer(BaseEDMLayer):
         # Build the array
         return ak.Array(
             {
-                item: first_item
+                item: ak.repartition(first_item, None)
                 if idx == 0
                 else ak.virtual(
                     lambda: ak.repartition(getattr(self, item).as_awkward(), None),

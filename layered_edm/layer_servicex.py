@@ -44,7 +44,7 @@ class LEDMServiceX(BaseEDMLayer):
         return self.ds.Select(function_ast)
 
 
-def edm_sx(class_to_wrap: Callable) -> Callable:
+def edm_sx(class_to_wrap: type) -> Callable:
     "Creates a class edm based on an servicex dataset."
 
     def make_it(arr: Union[ObjectStream, LEDMServiceX]):

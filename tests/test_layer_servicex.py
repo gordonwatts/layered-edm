@@ -74,10 +74,36 @@ def simple_awk_ds_virtual() -> ObjectStream:
         async def execute_result_async(
             self, a: ast.AST, _title: Optional[str] = None
         ) -> Any:
-            self._count += 1
-
             def generate():
+                self._count += 1
                 return ak.Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+
+            return ak.virtual(generate)
+
+    return my_evt_ds()
+
+
+@pytest.fixture
+def simple_awk_ds_virtual_concat() -> ObjectStream:
+    "Returns an awk array that is virtual and contactted"
+
+    class my_evt_ds(EventDataset):
+        def __init__(self):
+            super().__init__()
+            self._count = 0
+
+        @property
+        def count(self) -> int:
+            return self._count
+
+        async def execute_result_async(
+            self, a: ast.AST, _title: Optional[str] = None
+        ) -> Any:
+            def generate():
+                self._count += 1
+                a1 = ak.Array([0, 1, 2, 3, 4])
+                a2 = ak.Array([5, 6, 7, 8, 9])
+                return ak.concatenate((a1, a2))
 
             return ak.virtual(generate)
 
@@ -291,6 +317,34 @@ def test_simple_collection_as_awk(simple_awk_ds):
     assert t.keys() == ["px", "py"]
     assert len(awk_data) == 10
     assert simple_awk_ds.count == 2
+
+
+def test_simple_collection_as_v_awk(simple_awk_ds_virtual_concat):
+    "Virtual collection - simulates the uproot case where we load data from uproot"
+
+    class jet:
+        @property
+        @ledm.remap(lambda e: e.px())
+        def px(self) -> float:
+            ...
+
+        @property
+        @ledm.remap(lambda e: e.py())
+        def py(self) -> float:
+            ...
+
+    @ledm.edm_sx
+    class my_evt:
+        @property
+        @ledm.remap(lambda e: e.subs())
+        def subs(self) -> Iterable[jet]:
+            ...
+
+    data = my_evt(simple_awk_ds_virtual_concat)
+    awk_data = data.subs.as_awkward()
+
+    assert len(awk_data.px) == 10
+    assert len(awk_data.py) == 10
 
 
 def test_simple_collection_awk_behavior(simple_awk_ds):
