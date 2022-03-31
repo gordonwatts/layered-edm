@@ -21,6 +21,9 @@ def test_base_getattr():
         def single_item_map(self, callback: Callable) -> Any:
             raise NotImplementedError()
 
+        def iterable_map(self, callback: Callable) -> BaseEDMLayer:
+            raise NotImplementedError()
+
         def as_awkward(self) -> ak.Array:
             raise NotImplementedError()
 

@@ -115,6 +115,9 @@ class BaseTemplateEDMLayer(BaseEDMLayer):
     def single_item_map(self, callback: Callable) -> Any:
         raise RuntimeError("Should not be mapping a single item in a template")
 
+    def iterable_map(self, callback: Callable) -> BaseEDMLayer:
+        raise NotImplementedError()
+
     def as_awkward(self) -> ak.Array:
         """Generate awkward array for a single object (e.g not a collection)
 
@@ -123,17 +126,27 @@ class BaseTemplateEDMLayer(BaseEDMLayer):
         """
         behavior_name = class_behavior(self._template)
 
-        def generate():
-            return ak.Array(
-                {
-                    item: ak.repartition(getattr(self, item).as_awkward(), None)
-                    for item in dir(self._template)
-                    if not item.startswith("_")
-                }
-            )
+        # Determine the length so that we do not cause everything to be generated
+        # on creation.
+        all_items = [item for item in dir(self._template) if not item.startswith("_")]
+        assert len(all_items) > 0, "Template has no items"
 
-        v_array = ak.virtual(generate)
-        return ak.with_parameter(v_array, "__record__", behavior_name)
+        first_item = getattr(self, all_items[0]).as_awkward()
+        n_items = len(first_item)
+
+        # Build the array
+        return ak.Array(
+            {
+                item: first_item
+                if idx == 0
+                else ak.virtual(
+                    lambda: ak.repartition(getattr(self, item).as_awkward(), None),
+                    length=n_items,
+                )
+                for idx, item in enumerate(all_items)
+            },
+            with_name=behavior_name,
+        )
 
 
 class IterableTemplateEDMLayer(BaseTemplateEDMLayer):
@@ -146,20 +159,3 @@ class IterableTemplateEDMLayer(BaseTemplateEDMLayer):
     def _make_expr_call(self, callback: Callable) -> BaseEDMLayer:
         expr = self._get_expression()
         return expr.iterable_map(callback)
-
-    def as_awkward(self) -> ak.Array:
-        """Materialize this array as a list of sub-arrays"""
-
-        behavior_name = class_behavior(self._template)
-
-        def generate():
-            return ak.Array(
-                {
-                    item: ak.repartition(getattr(self, item).as_awkward(), None)
-                    for item in dir(self._template)
-                    if not item.startswith("_")
-                }
-            )
-
-        v_array = ak.virtual(generate)
-        return ak.with_parameter(v_array, "__record__", behavior_name)

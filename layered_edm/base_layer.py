@@ -66,6 +66,18 @@ class BaseEDMLayer(ABC):
             ak.Array: array representation of the data
         """
 
+    @abstractmethod
+    def iterable_map(self, callback: Callable) -> BaseEDMLayer:
+        """Return a new layer that is a map over some sequence - map function.
+
+        Args:
+            callback (Callable): Callback that supplies the map function
+
+        Returns:
+            BaseEDMLayer: The representative of the map function.
+        """
+        ...
+
 
 def remap(l_func: Optional[Callable] = lambda a: a) -> Callable:
     """Wrap a property to redirect how the item is actually accessed

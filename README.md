@@ -2,6 +2,16 @@
 
 Layered Event Data Model and services.
 
+## Usage
+
+### Logging
+
+```python
+import logging
+logger = logging.getLogger('layered_edm')
+logger.setLevel(logging.DEBUG)
+```
+
 ## Development
 
 * [x] Get simple ServiceX working
