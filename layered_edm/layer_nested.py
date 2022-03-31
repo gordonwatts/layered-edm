@@ -136,9 +136,9 @@ class BaseTemplateEDMLayer(BaseEDMLayer):
 
         items = {
             item: ak.virtual(
-                lambda itm: ak.repartition(getattr(self, itm).as_awkward(), None),
+                lambda o, itm: ak.repartition(getattr(o, itm).as_awkward(), None),
                 length=n_items,
-                args=(item,),
+                args=(self, item),
             )
             for item in all_items[1:]
         }
