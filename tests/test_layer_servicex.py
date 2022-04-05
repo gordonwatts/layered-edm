@@ -411,35 +411,43 @@ def test_simple_collection_awk_behavior(simple_awk_ds):
     assert str(awk_data.px * 2) == str(awk_data.px2)
 
 
-def test_it_out():
-    class my_behavior(ak.Array):
+def test_two_layer_combo(simple_ds):
+    "Want to have jets and electrons and combine them at top level"
+
+    class my_jet:
         @property
-        def px2(self):
-            return 2 * self.px2
+        @ledm.remap(lambda j: j.jet_px())
+        def px(self) -> float:
+            ...
 
-    ak.behavior["my_behavior"] = my_behavior
-    ak.behavior["*", "my_behavior"] = my_behavior
+    class my_electron:
+        @property
+        @ledm.remap(lambda e: e.ele_px())
+        def px(self) -> float:
+            ...
 
-    count = 0
+    @ledm.edm_sx
+    class my_evt_jet:
+        @property
+        @ledm.remap(lambda e: e.jets())
+        def jets(self) -> Iterable[my_jet]:
+            ...
 
-    def generate1():
-        print("generate1")
-        nonlocal count
-        count += 1
-        return ak.Array([1, 2, 3])
+    @ledm.edm_sx
+    class my_evt_ele:
+        @property
+        @ledm.remap(lambda e: e.electrons())
+        def electrons(self) -> Iterable[my_electron]:
+            ...
 
-    def generate2():
-        print("generate2")
-        nonlocal count
-        count += 1
-        return ak.Array([4, 5, 6])
+    data = my_evt_ele(my_evt_jet(simple_ds))
 
-    a1 = ak.virtual(generate1, length=3)
-    a2 = ak.virtual(generate2, length=3)
+    r_jet = data.jets.px.ds
+    r_ele = data.electrons.px.ds
 
-    print("building a")
-    a = ak.Array({"a1": a1, "a2": a2})
-    a = ak.with_parameter(a, "__record__", "my_behavior")
-    print("accessing a")
-    print(f"a.a1: {a.a1}")
-    assert count == 1
+    assert unparse(r_jet.value()) == unparse(
+        "Select(Select(EventDataset(), lambda e: e.jets()), lambda items: items.Select(lambda j: j.jet_px()))"
+    )
+    assert unparse(r_ele.value()) == unparse(
+        "Select(Select(EventDataset(), lambda e: e.electrons()), lambda items: items.Select(lambda e: e.ele_px()))"
+    )
