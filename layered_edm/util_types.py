@@ -125,8 +125,13 @@ def class_behavior(class_to_wrap: Callable) -> Optional[str]:
         behavior_object = all_behaviors
 
     # Make sure the behavior is registered
-    if ("*", behavior_name) not in ak.behavior and behavior_object is not None:
-        ak.behavior["*", behavior_name] = behavior_object
-        ak.behavior[behavior_name] = behavior_object
+    if ("*", behavior_name) not in ak.behavior:
+        if behavior_object is not None:
+            ak.behavior["*", behavior_name] = behavior_object
+            ak.behavior[behavior_name] = behavior_object
+        else:
+            raise ValueError(
+                f'Awkward behavior "{behavior_name}" is not declared to awkward'
+            )
 
     return behavior_name

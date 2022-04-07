@@ -101,13 +101,6 @@ def add_awk_behavior(behavior: Union[type, str]) -> Callable:
         Callable: _description_
     """
 
-    if isinstance(behavior, str):
-        type_behavior = ak.behavior.get(behavior, None)
-        if type_behavior is None:
-            raise ValueError(
-                f"No behavior named {behavior} is declared to ak.behavior."
-            )
-
     def add_behavior(cls: type) -> type:
         if not hasattr(cls, "_awk_behaviors"):
             setattr(cls, "_awk_behaviors", [])
