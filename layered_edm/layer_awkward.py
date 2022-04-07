@@ -1,7 +1,7 @@
-from typing import Any, Callable, Union
+from typing import Any, Callable, Optional, Union
 import awkward as ak
 
-from layered_edm.util_types import class_behavior
+from layered_edm.util_types import append_awk_behavior_to_class, class_behavior
 
 from .layer_nested import BaseTemplateEDMLayer
 from .base_layer import BaseEDMLayer
@@ -91,7 +91,9 @@ def edm_awk(class_to_wrap: type) -> Callable:
     return make_it
 
 
-def add_awk_behavior(behavior: Union[type, str]) -> Callable:
+def add_awk_behavior(
+    behavior: Union[type, str], reg_function: Optional[Callable[[], None]] = None
+) -> Callable:
     """You can add multiple behaviors, but only once per app right now!
 
     Args:
@@ -101,10 +103,8 @@ def add_awk_behavior(behavior: Union[type, str]) -> Callable:
         Callable: _description_
     """
 
-    def add_behavior(cls: type) -> type:
-        if not hasattr(cls, "_awk_behaviors"):
-            setattr(cls, "_awk_behaviors", [])
-        getattr(cls, "_awk_behaviors").append(behavior)
-        return cls
+    def add_behavior(class_to_wrap: type) -> type:
+        append_awk_behavior_to_class(class_to_wrap, behavior, reg_function)
+        return class_to_wrap
 
     return add_behavior
