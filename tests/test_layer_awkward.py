@@ -224,6 +224,60 @@ def test_aw_jets_behavior_by_name(simple_ds):
     assert ak.all(data.x2.as_awkward() == data.x.as_awkward() * 2)
 
 
+def test_aw_jets_behavior_by_name_late(simple_ds):
+    "Test adding a pre-existing, very simple, behavior"
+
+    class awk_my_behavior(ak.Array):
+        @property
+        def x2(self):
+            return self.x * 2
+
+    @ledm.edm_awk
+    @ledm.add_awk_behavior("test_aw_jets_behavior_by_name_late")
+    class my_evt:
+        ...
+
+    vector = ak.Array(
+        [
+            [{"x": 1, "y": 2, "z": 3}, {"x": 4, "y": 5, "z": 6}],
+        ],
+    )
+
+    ak.behavior["test_aw_jets_behavior_by_name_late"] = awk_my_behavior
+    ak.behavior["*", "test_aw_jets_behavior_by_name_late"] = awk_my_behavior
+
+    data = my_evt(vector)
+
+    print(ak.type(data.ds.ds))
+
+    assert ak.all(data.x2.as_awkward() == data.x.as_awkward() * 2)
+
+
+def test_aw_jets_behavior_by_name_bad():
+    "Test adding a pre-existing, very simple, behavior"
+
+    class awk_my_behavior(ak.Array):
+        @property
+        def x2(self):
+            return self.x * 2
+
+    @ledm.edm_awk
+    @ledm.add_awk_behavior("test_aw_jets_behavior_by_name_bad")
+    class my_evt:
+        ...
+
+    vector = ak.Array(
+        [
+            [{"x": 1, "y": 2, "z": 3}, {"x": 4, "y": 5, "z": 6}],
+        ],
+    )
+
+    with pytest.raises(Exception) as e:
+        my_evt(vector)
+
+    assert "test_aw_jets_behavior_by_name_bad" in str(e)
+
+
 def test_aw_jets_behavior_right_name(simple_ds):
     "Test adding a pre-existing, very simple, behavior"
 
@@ -256,19 +310,31 @@ def test_aw_jets_behavior_right_name(simple_ds):
     assert "test_aw_jets_behavior_by_name" in str(a.layout)
 
 
-def test_aw_jets_behavior_by_name_bad(simple_ds):
+def test_aw_jets_behavior_late_decl(simple_ds):
     "Test adding a pre-existing, very simple, behavior"
 
-    class awk_my_behavior(ak.Array):
-        @property
-        def x2(self):
-            return self.x * 2
+    def decl_behavior():
+        class awk_my_behavior(ak.Array):
+            @property
+            def x2(self):
+                return self.x * 2
 
-    with pytest.raises(ValueError) as e:
+        ak.behavior["test_aw_jets_behavior_late_decl"] = awk_my_behavior
+        ak.behavior["*", "test_aw_jets_behavior_late_decl"] = awk_my_behavior
 
-        @ledm.edm_awk
-        @ledm.add_awk_behavior("test_aw_jets_behavior_by_name_bad")
-        class my_evt:
-            ...
+    @ledm.edm_awk
+    @ledm.add_awk_behavior("test_aw_jets_behavior_late_decl", reg_function=decl_behavior)
+    class my_evt:
+        ...
 
-    assert "test_aw_jets_behavior_by_name_bad" in str(e)
+    vector = ak.Array(
+        [
+            [{"x": 1, "y": 2, "z": 3}, {"x": 4, "y": 5, "z": 6}],
+        ],
+    )
+
+    data = my_evt(vector)
+
+    print(ak.type(data.ds.ds))
+
+    assert ak.all(data.x2.as_awkward() == data.x.as_awkward() * 2)

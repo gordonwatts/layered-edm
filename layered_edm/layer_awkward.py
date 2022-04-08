@@ -1,7 +1,7 @@
-from typing import Any, Callable, Union
+from typing import Any, Callable, Optional, Union
 import awkward as ak
 
-from layered_edm.util_types import class_behavior
+from layered_edm.util_types import append_awk_behavior_to_class, class_behavior
 
 from .layer_nested import BaseTemplateEDMLayer
 from .base_layer import BaseEDMLayer
@@ -91,27 +91,25 @@ def edm_awk(class_to_wrap: type) -> Callable:
     return make_it
 
 
-def add_awk_behavior(behavior: Union[type, str]) -> Callable:
-    """You can add multiple behaviors, but only once per app right now!
+def add_awk_behavior(
+    behavior: Union[type, str], reg_function: Optional[Callable[[], None]] = None
+) -> Callable:
+    """A decorator to add an awkward behavior to a EDM class.
+
+    You can add multiple behaviors, but only once per app right now!
 
     Args:
-        behavior (type): _description_
+        behavior (type|str): Either the name of declared `ak.behavior` or
+                the class of the actual behavior
+        reg_function (Callable): A function to call to register the behavior.
+                Only called just before it is needed during binding.
 
     Returns:
-        Callable: _description_
+        Callable: Applied to the class by the decorator machinery in python.
     """
 
-    if isinstance(behavior, str):
-        type_behavior = ak.behavior.get(behavior, None)
-        if type_behavior is None:
-            raise ValueError(
-                f"No behavior named {behavior} is declared to ak.behavior."
-            )
-
-    def add_behavior(cls: type) -> type:
-        if not hasattr(cls, "_awk_behaviors"):
-            setattr(cls, "_awk_behaviors", [])
-        getattr(cls, "_awk_behaviors").append(behavior)
-        return cls
+    def add_behavior(class_to_wrap: type) -> type:
+        append_awk_behavior_to_class(class_to_wrap, behavior, reg_function)
+        return class_to_wrap
 
     return add_behavior

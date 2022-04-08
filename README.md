@@ -14,6 +14,9 @@ logger.setLevel(logging.DEBUG)
 
 ## Development
 
+`main` branch should always be working and ready for use in an analysis. Currently no packages are getting built, rather, reference
+the main branch in the repository in your `pyproject` files. This will eventually be released once it is working _well enough_.
+
 * [x] Get simple ServiceX working
 * [x] Get simple nested dataset working
 * [ ] Add sub-objects and collections of them (like a 4 vector object)

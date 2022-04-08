@@ -15,9 +15,7 @@ def simple_ds() -> ObjectStream:
     "Returns the ast when value() is called"
 
     class my_evt_ds(EventDataset):
-        async def execute_result_async(
-            self, a: ast.AST, _title: Optional[str] = None
-        ) -> Any:
+        async def execute_result_async(self, a: ast.AST, _title: Optional[str] = None) -> Any:
             return a
 
     return my_evt_ds()
@@ -28,9 +26,7 @@ def simple_ds2() -> ObjectStream:
     "Returns the ast when value() is called"
 
     class my_evt_ds(EventDataset):
-        async def execute_result_async(
-            self, a: ast.AST, _title: Optional[str] = None
-        ) -> Any:
+        async def execute_result_async(self, a: ast.AST, _title: Optional[str] = None) -> Any:
             return a
 
     return my_evt_ds()
@@ -49,9 +45,7 @@ def simple_awk_ds() -> ObjectStream:
         def count(self) -> int:
             return self._count
 
-        async def execute_result_async(
-            self, a: ast.AST, _title: Optional[str] = None
-        ) -> Any:
+        async def execute_result_async(self, a: ast.AST, _title: Optional[str] = None) -> Any:
             self._count += 1
             return ak.Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 
@@ -71,9 +65,7 @@ def simple_awk_ds_virtual() -> ObjectStream:
         def count(self) -> int:
             return self._count
 
-        async def execute_result_async(
-            self, a: ast.AST, _title: Optional[str] = None
-        ) -> Any:
+        async def execute_result_async(self, a: ast.AST, _title: Optional[str] = None) -> Any:
             def generate():
                 self._count += 1
                 return ak.Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
@@ -96,9 +88,7 @@ def simple_awk_ds_virtual_concat() -> ObjectStream:
         def count(self) -> int:
             return self._count
 
-        async def execute_result_async(
-            self, a: ast.AST, _title: Optional[str] = None
-        ) -> Any:
+        async def execute_result_async(self, a: ast.AST, _title: Optional[str] = None) -> Any:
             def generate():
                 self._count += 1
                 a1 = ak.Array([0, 1, 2, 3, 4])
@@ -149,9 +139,7 @@ def test_sx_in_layer(simple_ds):
     data = my_evt(empty_evt(simple_ds))
     r = data.met.ds
 
-    assert unparse(r.value()) == unparse(
-        "Select(EventDataset(), lambda e: e.MissingET().First())"
-    )
+    assert unparse(r.value()) == unparse("Select(EventDataset(), lambda e: e.MissingET().First())")
 
 
 def test_as_sx(simple_ds):

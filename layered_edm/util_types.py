@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import uuid
 from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union, get_args
 
@@ -96,6 +97,28 @@ def _get_behavior_object(b_name: Union[str, type]):
         return b_name
 
 
+@dataclass
+class AkBehaviorInfo:
+    "Awkward behavior registration info"
+
+    # The name or type of the behavior
+    name: Union[str, type]
+
+    # Callback to register the behavior if need be.
+    register_callback: Optional[Callable[[], None]]
+
+
+def append_awk_behavior_to_class(
+    class_to_wrap: type,
+    behavior_name: Union[str, type],
+    reg_function: Optional[Callable[[], None]],
+):
+    "Add a behavior info to a class"
+    if not hasattr(class_to_wrap, "_awk_behaviors"):
+        setattr(class_to_wrap, "_awk_behaviors", [])
+    getattr(class_to_wrap, "_awk_behaviors").append(AkBehaviorInfo(behavior_name, reg_function))
+
+
 def class_behavior(class_to_wrap: Callable) -> Optional[str]:
     """Scan a given class for any defined behaviors.
 
@@ -105,28 +128,34 @@ def class_behavior(class_to_wrap: Callable) -> Optional[str]:
     Returns:
         type: The behavior type, or None if no behaviors are found.
     """
-    behavior_list: Optional[List[type]] = getattr(class_to_wrap, "_awk_behaviors", None)
+    behavior_list: Optional[List[AkBehaviorInfo]] = getattr(class_to_wrap, "_awk_behaviors", None)
     if behavior_list is None:
         return None
 
     behavior_name: Optional[str] = None
     behavior_object = None
     if len(behavior_list) == 1:
-        behavior_name = _get_behavior_name(behavior_list[0])
-        behavior_object = (
-            None if isinstance(behavior_list[0], str) else behavior_list[0]
-        )
+        behavior_name = _get_behavior_name(behavior_list[0].name)
+        behavior_object = None if isinstance(behavior_list[0].name, str) else behavior_list[0].name
     else:
         # Multiple behaviors are done by multiple inheritance.
-        class all_behaviors(*(_get_behavior_object(c) for c in class_to_wrap._awk_behaviors)):  # type: ignore
+        class all_behaviors(*(_get_behavior_object(c.name) for c in behavior_list)):  # type: ignore
             pass
 
         behavior_name = str(uuid.uuid4())
         behavior_object = all_behaviors
 
+    # Call all the callback functions
+    for cb in behavior_list:
+        if cb.register_callback is not None:
+            cb.register_callback()
+
     # Make sure the behavior is registered
-    if ("*", behavior_name) not in ak.behavior and behavior_object is not None:
-        ak.behavior["*", behavior_name] = behavior_object
-        ak.behavior[behavior_name] = behavior_object
+    if ("*", behavior_name) not in ak.behavior:
+        if behavior_object is not None:
+            ak.behavior["*", behavior_name] = behavior_object
+            ak.behavior[behavior_name] = behavior_object
+        else:
+            raise ValueError(f'Awkward behavior "{behavior_name}" is not declared to awkward')
 
     return behavior_name
