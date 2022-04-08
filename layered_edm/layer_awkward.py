@@ -94,13 +94,18 @@ def edm_awk(class_to_wrap: type) -> Callable:
 def add_awk_behavior(
     behavior: Union[type, str], reg_function: Optional[Callable[[], None]] = None
 ) -> Callable:
-    """You can add multiple behaviors, but only once per app right now!
+    """A decorator to add an awkward behavior to a EDM class.
+
+    You can add multiple behaviors, but only once per app right now!
 
     Args:
-        behavior (type): _description_
+        behavior (type|str): Either the name of declared `ak.behavior` or
+                the class of the actual behavior
+        reg_function (Callable): A function to call to register the behavior.
+                Only called just before it is needed during binding.
 
     Returns:
-        Callable: _description_
+        Callable: Applied to the class by the decorator machinery in python.
     """
 
     def add_behavior(class_to_wrap: type) -> type:
