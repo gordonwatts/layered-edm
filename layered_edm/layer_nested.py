@@ -83,9 +83,7 @@ class BaseTemplateEDMLayer(BaseEDMLayer):
         expr = self._get_expression()
         return expr.single_item_map(callback)
 
-    def _find_template_attr(
-        self, name: str
-    ) -> Tuple[Optional[Callable], Optional[Type]]:
+    def _find_template_attr(self, name: str) -> Tuple[Optional[Callable], Optional[Type]]:
         """Find some sort of remapping function for a given attribute from the
         template.
 
@@ -143,9 +141,7 @@ class BaseTemplateEDMLayer(BaseEDMLayer):
             for item in all_items[1:]
         }
 
-        items[all_items[0]] = ak.virtual(
-            lambda: ak.repartition(first_item, None), length=n_items
-        )
+        items[all_items[0]] = ak.virtual(lambda: ak.repartition(first_item, None), length=n_items)
 
         # Build the array
         a = ak.Array(items)
