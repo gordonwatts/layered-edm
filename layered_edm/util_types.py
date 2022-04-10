@@ -132,6 +132,11 @@ def class_behavior(class_to_wrap: Callable) -> Optional[str]:
     if behavior_list is None:
         return None
 
+    # Call all the callback functions
+    for cb in behavior_list:
+        if cb.register_callback is not None:
+            cb.register_callback()
+
     behavior_name: Optional[str] = None
     behavior_object = None
     if len(behavior_list) == 1:
@@ -144,11 +149,6 @@ def class_behavior(class_to_wrap: Callable) -> Optional[str]:
 
         behavior_name = str(uuid.uuid4())
         behavior_object = all_behaviors
-
-    # Call all the callback functions
-    for cb in behavior_list:
-        if cb.register_callback is not None:
-            cb.register_callback()
 
     # Make sure the behavior is registered
     if ("*", behavior_name) not in ak.behavior:
