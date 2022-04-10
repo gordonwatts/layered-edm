@@ -7,7 +7,7 @@ def test_class_behavior_none(ak_behavior):
     class my_test:
         pass
 
-    assert class_behavior(my_test) == None
+    assert class_behavior(my_test) is None
 
 
 def test_class_behavior_add_one(ak_behavior):
