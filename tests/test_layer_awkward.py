@@ -7,17 +7,6 @@ import layered_edm as ledm
 from layered_edm.base_layer import BaseEDMLayer
 
 
-@pytest.fixture
-def simple_ds():
-    return ak.Array(
-        [
-            [{"x": 1}, {"x": 2}, {"x": 3}],
-            [],
-            [{"x": 4}, {"x": 5}],
-        ]
-    )
-
-
 def test_aw_in_layer(simple_ds):
     @ledm.edm_awk
     class my_evt:
@@ -62,7 +51,7 @@ def test_aw_jets_iterable(simple_ds):
     assert r.tolist() == [[1, 2, 3], [], [4, 5]]
 
 
-def test_aw_jets_behavior_test(simple_ds):
+def test_aw_jets_behavior_test(simple_ds, ak_behavior):
     "Test adding a pre-existing, very simple, behavior"
 
     class awk_my_behavior(ak.Array):
@@ -88,7 +77,7 @@ def test_aw_jets_behavior_test(simple_ds):
     assert ak.all(data.x2.as_awkward() == data.x.as_awkward() * 2)
 
 
-def test_aw_jets_behavior_test_2(simple_ds):
+def test_aw_jets_behavior_test_2(simple_ds, ak_behavior):
     "Test adding a pre-existing, very simple, behavior"
 
     class awk_my_behavior_1(ak.Array):
@@ -224,7 +213,7 @@ def test_aw_jets_behavior_by_name(simple_ds):
     assert ak.all(data.x2.as_awkward() == data.x.as_awkward() * 2)
 
 
-def test_aw_jets_behavior_by_name_late(simple_ds):
+def test_aw_jets_behavior_by_name_late(simple_ds, ak_behavior):
     "Test adding a pre-existing, very simple, behavior"
 
     class awk_my_behavior(ak.Array):
@@ -253,7 +242,7 @@ def test_aw_jets_behavior_by_name_late(simple_ds):
     assert ak.all(data.x2.as_awkward() == data.x.as_awkward() * 2)
 
 
-def test_aw_jets_behavior_by_name_bad():
+def test_aw_jets_behavior_by_name_bad(ak_behavior):
     "Test adding a pre-existing, very simple, behavior"
 
     class awk_my_behavior(ak.Array):
@@ -278,7 +267,7 @@ def test_aw_jets_behavior_by_name_bad():
     assert "test_aw_jets_behavior_by_name_bad" in str(e)
 
 
-def test_aw_jets_behavior_right_name(simple_ds):
+def test_aw_jets_behavior_right_name(simple_ds, ak_behavior):
     "Test adding a pre-existing, very simple, behavior"
 
     class awk_my_behavior(ak.Array):
@@ -286,7 +275,8 @@ def test_aw_jets_behavior_right_name(simple_ds):
         def x2(self):
             return self.x * 2
 
-    ak.behavior["test_aw_jets_behavior_by_name"] = awk_my_behavior
+    ak_behavior["test_aw_jets_behavior_by_name"] = awk_my_behavior
+    ak_behavior["*", "test_aw_jets_behavior_by_name"] = awk_my_behavior
 
     @ledm.add_awk_behavior("test_aw_jets_behavior_by_name")
     class jet:
@@ -310,7 +300,7 @@ def test_aw_jets_behavior_right_name(simple_ds):
     assert "test_aw_jets_behavior_by_name" in str(a.layout)
 
 
-def test_aw_jets_behavior_late_decl(simple_ds):
+def test_aw_jets_behavior_late_decl(simple_ds, ak_behavior):
     "Test adding a pre-existing, very simple, behavior"
 
     def decl_behavior():
